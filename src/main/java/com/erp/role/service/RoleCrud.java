@@ -63,7 +63,7 @@ public final class RoleCrud {
                     page.getNumber(),
                     page.getSize(),
                     page.getTotalPages(),
-                    page.getTotalElements(),
+                    page.getNumberOfElements(),
                     page.getContent()
             );
         } catch(Exception e) {
@@ -74,7 +74,14 @@ public final class RoleCrud {
 
     public RoleEntity update(RoleEntity entity) {
         try {
-            return repository.save(entity);
+            RoleEntity entityFound = repository.findById(entity.getId()).orElseThrow(() -> new RoleDoesNotExistException(HttpCode.conflict()));
+
+            entityFound.setName(entity.getName());
+
+            return repository.save(entityFound);
+        } catch(DomainError e) {
+            LOG.info(e.getMessage(), e);
+            throw e;
         } catch(Exception e) {
             LOG.error(e.getMessage(), e);
             throw e;
