@@ -66,7 +66,7 @@ public final class UserCrud {
                     page.getNumber(),
                     page.getSize(),
                     page.getTotalPages(),
-                    page.getTotalElements(),
+                    page.getNumberOfElements(),
                     page.getContent()
             );
         } catch(Exception e) {
@@ -77,7 +77,18 @@ public final class UserCrud {
 
     public UserEntity update(UserEntity entity) {
         try {
-            return repository.save(entity);
+            UserEntity entityFound = repository.findById(entity.getId()).orElseThrow(() -> new UserDoesNotExistException(HttpCode.conflict()));
+
+            entityFound.setFirstName(entity.getFirstName());
+            entityFound.setMiddleName(entity.getMiddleName());
+            entityFound.setLastName(entity.getLastName());
+            entityFound.setSecondLastName(entity.getSecondLastName());
+            entityFound.setPhoneNumber(entity.getPhoneNumber());
+
+            return repository.save(entityFound);
+        } catch(DomainError e) {
+            LOG.info(e.getMessage(), e);
+            throw e;
         } catch(Exception e) {
             LOG.error(e.getMessage(), e);
             throw e;

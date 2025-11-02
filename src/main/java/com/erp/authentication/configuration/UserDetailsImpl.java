@@ -1,5 +1,6 @@
 package com.erp.authentication.configuration;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 import com.erp.permission.entity.PermissionEntity;
@@ -18,15 +19,17 @@ public class UserDetailsImpl implements UserDetails, CredentialsContainer {
     private final Set<String> roles;
     private final Set<String> permissions;
     private final Collection<? extends GrantedAuthority> authorities;
+    private LocalDateTime tokenExpirationDate;
 
     private UserDetailsImpl(Long id, String username, String password, Set<String> roles, Set<String> permissions,
-                            Set<GrantedAuthority> authorities) {
+                            Set<GrantedAuthority> authorities, LocalDateTime tokenExpirationDate) {
         this.id = id;
         this.username = username;
         this.password = password;
         this.roles = roles;
         this.permissions = permissions;
         this.authorities = authorities;
+        this.tokenExpirationDate = tokenExpirationDate;
     }
 
     public static UserDetailsImpl create(UserEntity user) {
@@ -50,7 +53,8 @@ public class UserDetailsImpl implements UserDetails, CredentialsContainer {
                 user.getPassword(),
                 roles,
                 permissions,
-                authorities
+                authorities,
+                user.getTokenExpirationDate()
         );
     }
 
@@ -64,6 +68,14 @@ public class UserDetailsImpl implements UserDetails, CredentialsContainer {
 
     public Set<String> getPermissions() {
         return permissions;
+    }
+
+    public LocalDateTime getTokenExpirationDate() {
+        return tokenExpirationDate;
+    }
+
+    public boolean shouldResetPassword() {
+        return tokenExpirationDate != null;
     }
 
     @Override

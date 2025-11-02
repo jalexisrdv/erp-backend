@@ -30,7 +30,10 @@ public class PasswordResetService {
 		try {
 			UserEntity entity = repository.findById(dto.userId()).orElseThrow(() -> new UserDoesNotExistException(HttpCode.conflict()));
 
-			entity.setToken(PasswordTokenGenerator.generate());
+			String token = PasswordTokenGenerator.generate();
+
+			entity.setPassword(BCryptPasswordEncoderUtil.hashPassword(token));
+			entity.setToken(token);
 			entity.setTokenExpirationDate(LocalDateTime.now().plusDays(1));
 
 			repository.save(entity);

@@ -6,6 +6,7 @@ public record SignInResponseDTO(
         String username,
         Set<String> roles,
         Set<String> permissions,
-        String token
+        String token,
+        boolean resetPassword
 ) {
 }
