@@ -4,6 +4,6 @@ public record ResponsePageDTO(
         Integer number,
         Integer size,
         Integer pages,
-        Integer items
+        Long items
 ) {
 }

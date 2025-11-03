@@ -18,6 +18,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public final class ItemCategoryCrud {
 
@@ -62,7 +64,7 @@ public final class ItemCategoryCrud {
                     page.getNumber(),
                     page.getSize(),
                     page.getTotalPages(),
-                    page.getNumberOfElements(),
+                    page.getTotalElements(),
                     page.getContent()
             );
         } catch(Exception e) {

@@ -66,7 +66,7 @@ public final class UserCrud {
                     page.getNumber(),
                     page.getSize(),
                     page.getTotalPages(),
-                    page.getNumberOfElements(),
+                    page.getTotalElements(),
                     page.getContent()
             );
         } catch(Exception e) {
