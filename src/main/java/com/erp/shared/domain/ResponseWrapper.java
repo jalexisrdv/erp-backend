@@ -1,6 +1,7 @@
 package com.erp.shared.domain;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 
 public class ResponseWrapper<T> {
@@ -15,9 +16,9 @@ public class ResponseWrapper<T> {
 		this.body = body;
 	}
 
-	public static <T> ResponseEntity<ResponseWrapper<T>> create(Integer httpCode, String message) {
+	public static <T> ResponseEntity<ResponseWrapper<T>> create(HttpStatusCode httpStatusCode, String message) {
 		ResponseWrapper<T> response = new ResponseWrapper<>(true, null, message);
-		return new ResponseEntity<>(response, HttpStatus.valueOf(httpCode));
+		return new ResponseEntity<>(response, httpStatusCode);
 	}
 	
 	public static <T> ResponseEntity<ResponseWrapper<T>> ok(T data) {

@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 import com.erp.authentication.dto.ResetPasswordDTO;
 import com.erp.authentication.dto.ResetPasswordTokenDTO;
-import com.erp.shared.domain.HttpCode;
+import com.erp.shared.domain.DomainErrorType;
 import com.erp.user.entity.UserEntity;
 import com.erp.authentication.exception.InvalidPasswordResetTokenException;
 import com.erp.authentication.exception.UserDoesNotExistException;
@@ -28,7 +28,7 @@ public class PasswordResetService {
 
 	public ResetPasswordTokenDTO generateToken(ResetPasswordTokenDTO dto) {
 		try {
-			UserEntity entity = repository.findById(dto.userId()).orElseThrow(() -> new UserDoesNotExistException(HttpCode.conflict()));
+			UserEntity entity = repository.findById(dto.userId()).orElseThrow(() -> new UserDoesNotExistException(DomainErrorType.DEPENDENCY));
 
 			String token = PasswordTokenGenerator.generate();
 
@@ -48,11 +48,11 @@ public class PasswordResetService {
 	public void reset(ResetPasswordDTO dto) {
 		try {
 			UserEntity entityFound = repository.findByUsernameAndToken(dto.username(), dto.token())
-					.orElseThrow(() -> new InvalidPasswordResetTokenException(HttpCode.conflict()));
+					.orElseThrow(() -> new InvalidPasswordResetTokenException());
 			
 			boolean isExpired = LocalDateTime.now().isAfter(entityFound.getTokenExpirationDate());
 			
-			if(isExpired) throw new InvalidPasswordResetTokenException(HttpCode.conflict());
+			if(isExpired) throw new InvalidPasswordResetTokenException();
 			
 			entityFound.setPassword(BCryptPasswordEncoderUtil.hashPassword(dto.password()));
 			entityFound.setToken(null);

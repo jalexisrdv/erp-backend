@@ -5,7 +5,7 @@ import com.erp.role.entity.RoleEntity;
 import com.erp.role.exception.RoleDoesNotExistException;
 import com.erp.role.repository.RoleRepository;
 import com.erp.shared.domain.DomainError;
-import com.erp.shared.domain.HttpCode;
+import com.erp.shared.domain.DomainErrorType;
 import com.erp.shared.domain.PaginationRules;
 import com.erp.shared.dto.pagination.PaginationRequestDTO;
 import com.erp.shared.dto.pagination.ResponsePaginationDTO;
@@ -74,7 +74,7 @@ public final class RoleCrud {
 
     public RoleEntity update(RoleEntity entity) {
         try {
-            RoleEntity entityFound = repository.findById(entity.getId()).orElseThrow(() -> new RoleDoesNotExistException(HttpCode.conflict()));
+            RoleEntity entityFound = repository.findById(entity.getId()).orElseThrow(() -> new RoleDoesNotExistException());
 
             entityFound.setName(entity.getName());
 
@@ -99,7 +99,7 @@ public final class RoleCrud {
 
     public List<PermissionEntity> assignPermissions(Long roleId, List<PermissionEntity> permissions) {
         try {
-            RoleEntity role = repository.findById(roleId).orElseThrow(() -> new RoleDoesNotExistException(HttpCode.conflict()));
+            RoleEntity role = repository.findById(roleId).orElseThrow(() -> new RoleDoesNotExistException(DomainErrorType.DEPENDENCY));
             role.setPermissions(permissions);
 
             return repository.save(role).getPermissions();
@@ -114,7 +114,7 @@ public final class RoleCrud {
 
     public List<PermissionEntity> fetchPermissions(Long roleId) {
         try {
-            RoleEntity role = repository.findById(roleId).orElseThrow(() -> new RoleDoesNotExistException(HttpCode.conflict()));
+            RoleEntity role = repository.findById(roleId).orElseThrow(() -> new RoleDoesNotExistException(DomainErrorType.DEPENDENCY));
 
             return role.getPermissions();
         } catch(DomainError e) {

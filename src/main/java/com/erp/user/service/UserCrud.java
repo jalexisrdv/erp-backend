@@ -4,7 +4,7 @@ import com.erp.authentication.exception.UserDoesNotExistException;
 import com.erp.authentication.repository.UserRepository;
 import com.erp.role.entity.RoleEntity;
 import com.erp.shared.domain.DomainError;
-import com.erp.shared.domain.HttpCode;
+import com.erp.shared.domain.DomainErrorType;
 import com.erp.shared.domain.PaginationRules;
 import com.erp.shared.dto.pagination.PaginationRequestDTO;
 import com.erp.shared.dto.pagination.ResponsePaginationDTO;
@@ -35,7 +35,7 @@ public final class UserCrud {
     public UserEntity create(UserEntity entity) {
         try {
             if(repository.findByUsername(entity.getUsername()).isPresent()) {
-                throw new UsernameAlreadyExistsException(HttpCode.conflict());
+                throw new UsernameAlreadyExistsException();
             }
 
             return repository.save(entity);
@@ -77,7 +77,7 @@ public final class UserCrud {
 
     public UserEntity update(UserEntity entity) {
         try {
-            UserEntity entityFound = repository.findById(entity.getId()).orElseThrow(() -> new UserDoesNotExistException(HttpCode.conflict()));
+            UserEntity entityFound = repository.findById(entity.getId()).orElseThrow(() -> new UserDoesNotExistException());
 
             entityFound.setFirstName(entity.getFirstName());
             entityFound.setMiddleName(entity.getMiddleName());
@@ -106,7 +106,7 @@ public final class UserCrud {
 
     public List<RoleEntity> assignRoles(Long id, List<RoleEntity> roles) {
         try {
-            UserEntity entity = repository.findById(id).orElseThrow(() -> new UserDoesNotExistException(HttpCode.conflict()));
+            UserEntity entity = repository.findById(id).orElseThrow(() -> new UserDoesNotExistException(DomainErrorType.DEPENDENCY));
             entity.setRoles(roles);
 
             return repository.save(entity).getRoles();
@@ -121,7 +121,7 @@ public final class UserCrud {
 
     public List<RoleEntity> fetchRoles(Long id) {
         try {
-            UserEntity entity = repository.findById(id).orElseThrow(() -> new UserDoesNotExistException(HttpCode.conflict()));
+            UserEntity entity = repository.findById(id).orElseThrow(() -> new UserDoesNotExistException(DomainErrorType.DEPENDENCY));
 
             return entity.getRoles();
         } catch(DomainError e) {

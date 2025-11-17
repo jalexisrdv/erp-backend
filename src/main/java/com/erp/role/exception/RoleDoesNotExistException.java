@@ -1,9 +1,16 @@
 package com.erp.role.exception;
 
 import com.erp.shared.domain.DomainError;
+import com.erp.shared.domain.DomainErrorType;
 
 public final class RoleDoesNotExistException extends DomainError {
-    public RoleDoesNotExistException(Integer httpCode) {
-        super(httpCode, "El rol no existe.");
+    private final static String message = "El rol no existe.";
+
+    public RoleDoesNotExistException(DomainErrorType errorType) {
+        super(errorType, message);
+    }
+
+    public RoleDoesNotExistException() {
+        super(message);
     }
 }

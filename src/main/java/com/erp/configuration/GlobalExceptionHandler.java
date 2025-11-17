@@ -1,9 +1,12 @@
 package com.erp.configuration;
 
 import com.erp.shared.domain.DomainError;
+import com.erp.shared.domain.DomainErrorType;
 import com.erp.shared.domain.ResponseWrapper;
 import com.erp.shared.exeption.UnexpectedException;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -14,7 +17,12 @@ public class GlobalExceptionHandler {
 
 	@ExceptionHandler(DomainError.class)
 	public ResponseEntity<?> handleException(DomainError e) {
-		return ResponseWrapper.create(e.getHttpCode(), e.getMessage());
+		HttpStatusCode httpStatusCode = switch (e.errorType()) {
+			case DOMAIN -> HttpStatus.BAD_REQUEST;
+			case DEPENDENCY -> HttpStatus.CONFLICT;
+		};
+
+		return ResponseWrapper.create(httpStatusCode, e.getMessage());
 	}
 
 	@ExceptionHandler(Exception.class)

@@ -5,7 +5,7 @@ import com.erp.authentication.dto.SignInResponseDTO;
 import com.erp.authentication.exception.InvalidCredentialsException;
 import com.erp.authentication.repository.UserRepository;
 import com.erp.authentication.util.JwtUtil;
-import com.erp.shared.domain.HttpCode;
+import com.erp.shared.domain.DomainErrorType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -37,7 +37,7 @@ public class SignInService {
 			boolean isTemporalPasswordExpired = LocalDateTime.now().isAfter(details.getTokenExpirationDate());
 
 			if(isTemporalPasswordExpired) {
-				throw new InvalidCredentialsException(HttpCode.conflict());
+				throw new InvalidCredentialsException();
 			}
 
 			return new SignInResponseDTO(
@@ -49,7 +49,7 @@ public class SignInService {
 			);
 		} catch (AuthenticationException e) {
 			LOG.info(e.getMessage(), e);
-			throw new InvalidCredentialsException(HttpCode.badRequest());
+			throw new InvalidCredentialsException();
 		}
 	}
 

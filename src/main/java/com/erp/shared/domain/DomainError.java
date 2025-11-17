@@ -2,14 +2,19 @@ package com.erp.shared.domain;
 
 public class DomainError extends RuntimeException {
 
-    private Integer httpCode;
+    private DomainErrorType errorType;
 
-    public DomainError(Integer httpCode, String message) {
+    public DomainError(DomainErrorType errorType, String message) {
         super(message);
-        this.httpCode = httpCode;
+        this.errorType = errorType;
     }
 
-    public Integer getHttpCode() {
-        return httpCode;
+    public DomainError(String message) {
+        this(DomainErrorType.DOMAIN, message);
     }
+
+    public DomainErrorType errorType() {
+        return errorType;
+    }
+
 }
