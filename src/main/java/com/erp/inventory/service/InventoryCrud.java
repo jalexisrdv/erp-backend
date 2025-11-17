@@ -6,7 +6,7 @@ import com.erp.inventory.exception.inventory.ItemDoesNotExistException;
 import com.erp.inventory.exception.inventory.ItemAlreadyExistsException;
 import com.erp.inventory.repository.InventoryRepository;
 import com.erp.shared.domain.DomainError;
-import com.erp.shared.domain.HttpCode;
+import com.erp.shared.domain.DomainErrorType;
 import com.erp.shared.domain.PaginationRules;
 import com.erp.shared.dto.pagination.PaginationRequestDTO;
 import com.erp.shared.dto.pagination.ResponsePaginationDTO;
@@ -37,7 +37,7 @@ public final class InventoryCrud {
     public InventoryEntity create(InventoryEntity entity) {
         try {
             if(repository.findByItemName(entity.getItemName()).isPresent()) {
-                throw new ItemAlreadyExistsException(HttpCode.conflict());
+                throw new ItemAlreadyExistsException(DomainErrorType.DEPENDENCY);
             }
 
             entity.setCreatedBy(userProvider.getUserId());
@@ -82,9 +82,9 @@ public final class InventoryCrud {
 
     public InventoryEntity update(InventoryEntity entity) {
         try {
-            InventoryEntity entityFound = repository.findById(entity.getId()).orElseThrow(() -> new ItemDoesNotExistException(HttpCode.conflict()));
+            InventoryEntity entityFound = repository.findById(entity.getId()).orElseThrow(() -> new ItemDoesNotExistException());
 
-            entityFound.setItemCategoryId(entity.getItemCategoryId());
+            entityFound.setCategory(entity.getCategory());
             entityFound.setItemCode(entity.getItemCode());
             entityFound.setItemName(entity.getItemName());
             entityFound.setMinimumStock(entity.getMinimumStock());

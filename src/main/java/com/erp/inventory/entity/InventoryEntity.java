@@ -12,8 +12,9 @@ public final class InventoryEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "item_category_id")
-    private Long itemCategoryId;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "item_category_id")
+    private ItemCategoryEntity category;
 
     @Column(name = "item_code")
     private String itemCode;
@@ -23,6 +24,18 @@ public final class InventoryEntity {
 
     @Column(name = "minimum_stock")
     private Integer minimumStock;
+
+    @Column(name = "entry_count")
+    private Long entryCount;
+
+    @Column(name = "pending_entry_count")
+    private Long pendingEntryCount;
+
+    @Column(name = "output_count")
+    private Long outputCount;
+
+    @Column(name = "reserved_output_count")
+    private Long reservedOutputCount;
 
     @Column(name = "created_by")
     private Long createdBy;
@@ -36,16 +49,40 @@ public final class InventoryEntity {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    public static InventoryEntity create(Long id, Long itemCategoryId, String itemCode, String itemName, Integer minimumStock) {
+    public static InventoryEntity create(Long id, Long categoryId, String categoryName, String itemCode, String itemName, Integer minimumStock) {
+        ItemCategoryEntity category = new ItemCategoryEntity();
+        category.setId(categoryId);
+        category.setName(categoryName);
+
         InventoryEntity entity = new InventoryEntity();
 
         entity.setId(id);
-        entity.setItemCategoryId(itemCategoryId);
+        entity.setCategory(category);
         entity.setItemCode(itemCode);
         entity.setItemName(itemName);
         entity.setMinimumStock(minimumStock);
+        entity.setEntryCount(0L);
+        entity.setOutputCount(0L);
+        entity.setPendingEntryCount(0L);
+        entity.setReservedOutputCount(0L);
 
         return entity;
+    }
+
+    public boolean hasStockFor(Long quantity) {
+        return quantity <= stock();
+    }
+
+    public Long stock() {
+        return entryCount - outputCount - reservedOutputCount;
+    }
+
+    public void increasePendingEntryCount(Long quantity) {
+        pendingEntryCount += quantity;
+    }
+
+    public void increaseReserveOutputCount(Long quantity) {
+        reservedOutputCount += quantity;
     }
 
     public Long getId() {
@@ -56,12 +93,12 @@ public final class InventoryEntity {
         this.id = id;
     }
 
-    public Long getItemCategoryId() {
-        return itemCategoryId;
+    public ItemCategoryEntity getCategory() {
+        return category;
     }
 
-    public void setItemCategoryId(Long itemCategoryId) {
-        this.itemCategoryId = itemCategoryId;
+    public void setCategory(ItemCategoryEntity category) {
+        this.category = category;
     }
 
     public String getItemCode() {
@@ -86,6 +123,38 @@ public final class InventoryEntity {
 
     public void setMinimumStock(Integer minimumStock) {
         this.minimumStock = minimumStock;
+    }
+
+    public Long getEntryCount() {
+        return entryCount;
+    }
+
+    public void setEntryCount(Long entryCount) {
+        this.entryCount = entryCount;
+    }
+
+    public Long getPendingEntryCount() {
+        return pendingEntryCount;
+    }
+
+    public void setPendingEntryCount(Long pendingEntryCount) {
+        this.pendingEntryCount = pendingEntryCount;
+    }
+
+    public Long getOutputCount() {
+        return outputCount;
+    }
+
+    public void setOutputCount(Long outputCount) {
+        this.outputCount = outputCount;
+    }
+
+    public Long getReservedOutputCount() {
+        return reservedOutputCount;
+    }
+
+    public void setReservedOutputCount(Long reservedOutputCount) {
+        this.reservedOutputCount = reservedOutputCount;
     }
 
     public Long getCreatedBy() {

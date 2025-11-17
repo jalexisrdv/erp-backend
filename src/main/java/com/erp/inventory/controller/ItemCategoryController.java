@@ -9,6 +9,8 @@ import com.erp.shared.dto.pagination.ResponsePaginationDTO;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping(value = "inventory/categories")
 public final class ItemCategoryController {
@@ -24,6 +26,11 @@ public final class ItemCategoryController {
     @PostMapping
     public ResponseEntity<ResponseWrapper<ItemCategoryDTO>> create(@RequestBody ItemCategoryDTO dto) {
         return ResponseWrapper.ok(mapper.fromEntity(crud.create(mapper.fromDTO(dto))));
+    }
+
+    @GetMapping
+    public ResponseEntity<ResponseWrapper<List<ItemCategoryDTO>>> findAll() {
+        return ResponseWrapper.ok(mapper.fromEntity(crud.findAll()));
     }
 
     @PostMapping(value = "/pagination")

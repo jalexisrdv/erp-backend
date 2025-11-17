@@ -5,7 +5,7 @@ import com.erp.inventory.exception.category.ItemCategoryAlreadyExistsException;
 import com.erp.inventory.exception.category.ItemCategoryDoesNotExistException;
 import com.erp.inventory.repository.ItemCategoryRepository;
 import com.erp.shared.domain.DomainError;
-import com.erp.shared.domain.HttpCode;
+import com.erp.shared.domain.DomainErrorType;
 import com.erp.shared.domain.PaginationRules;
 import com.erp.shared.dto.pagination.PaginationRequestDTO;
 import com.erp.shared.dto.pagination.ResponsePaginationDTO;
@@ -34,13 +34,22 @@ public final class ItemCategoryCrud {
     public ItemCategoryEntity create(ItemCategoryEntity entity) {
         try {
             if(repository.findByName(entity.getName()).isPresent()) {
-                throw new ItemCategoryAlreadyExistsException(HttpCode.conflict());
+                throw new ItemCategoryAlreadyExistsException(DomainErrorType.DEPENDENCY);
             }
 
             return repository.save(entity);
         } catch(DomainError e) {
             LOG.info(e.getMessage(), e);
             throw e;
+        } catch(Exception e) {
+            LOG.error(e.getMessage(), e);
+            throw e;
+        }
+    }
+
+    public List<ItemCategoryEntity> findAll() {
+        try {
+            return repository.findAll();
         } catch(Exception e) {
             LOG.error(e.getMessage(), e);
             throw e;
@@ -75,7 +84,7 @@ public final class ItemCategoryCrud {
 
     public ItemCategoryEntity update(ItemCategoryEntity entity) {
         try {
-            ItemCategoryEntity entityFound = repository.findById(entity.getId()).orElseThrow(() -> new ItemCategoryDoesNotExistException(HttpCode.conflict()));
+            ItemCategoryEntity entityFound = repository.findById(entity.getId()).orElseThrow(() -> new ItemCategoryDoesNotExistException(DomainErrorType.DEPENDENCY));
 
             entityFound.setName(entity.getName());
 

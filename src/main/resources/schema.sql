@@ -1,5 +1,4 @@
-DROP TABLE IF EXISTS inventory_out_movements CASCADE;
-DROP TABLE IF EXISTS inventory_entry_movements CASCADE;
+DROP TABLE IF EXISTS inventory_movements CASCADE;
 DROP TABLE IF EXISTS inventory CASCADE;
 DROP TABLE IF EXISTS item_category CASCADE;
 DROP TABLE IF EXISTS user_roles CASCADE;
@@ -57,10 +56,14 @@ CREATE TABLE item_category (
 
 CREATE TABLE inventory (
     id SERIAL PRIMARY KEY,
-    item_category_id VARCHAR(100) NOT NULL,
+    item_category_id INT NOT NULL,
     item_code VARCHAR(50) UNIQUE NOT NULL,
     item_name TEXT,
     minimum_stock NUMERIC(10,2) DEFAULT 0,
+    entry_count NUMERIC(10,2) DEFAULT 0 NOT NULL CHECK (entry_count >= 0),
+    pending_entry_count NUMERIC(10,2) DEFAULT 0 NOT NULL CHECK (pending_entry_count >= 0),
+    output_count NUMERIC(10,2) DEFAULT 0 NOT NULL CHECK (output_count >= 0),
+    reserved_output_count NUMERIC(10,2) DEFAULT 0 NOT NULL CHECK (reserved_output_count >= 0),
     created_by INT,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_by INT,
@@ -69,37 +72,22 @@ CREATE TABLE inventory (
     CONSTRAINT fk_inventory_users_updated_by FOREIGN KEY (updated_by) REFERENCES users(id)
 );
 
-CREATE TABLE inventory_entry_movements (
+CREATE TABLE inventory_movements (
     id SERIAL PRIMARY KEY,
     inventory_id INT NOT NULL,
-    quantity NUMERIC(10,2) NOT NULL CHECK (quantity > 0),
-    created_by INT,
-    created_at TIMESTAMP DEFAULT NOW(),
-    updated_by INT,
-    updated_at TIMESTAMP,
-    reviewed_by INT,
-    reviewed_at TIMESTAMP,
-    status VARCHAR(20) DEFAULT 'PENDIENTE' CHECK (status IN ('PENDIENTE', 'APROBADO', 'RECHAZADO')),
-    rejected_reason TEXT,
-    CONSTRAINT fk_inventory_entry_movements_inventory FOREIGN KEY (inventory_id) REFERENCES inventory(id),
-    CONSTRAINT fk_inventory_entry_movements_users_created_by FOREIGN KEY (created_by) REFERENCES users(id),
-    CONSTRAINT fk_inventory_entry_movements_users_updated_by FOREIGN KEY (updated_by) REFERENCES users(id),
-    CONSTRAINT fk_inventory_entry_movements_users_reviewed_by FOREIGN KEY (reviewed_by) REFERENCES users(id)
-);
-
-CREATE TABLE inventory_output_movements (
-    id SERIAL PRIMARY KEY,
-    inventory_id INT NOT NULL,
-    quantity NUMERIC(10,2) NOT NULL CHECK (quantity > 0),
+    type VARCHAR(20) DEFAULT '' NOT NULL CHECK (type IN ('ENTRADA', 'SALIDA')),
+    quantity NUMERIC(10,2) DEFAULT 0 NOT NULL CHECK (quantity >= 0),
+    invoice_url TEXT,
     output_reason TEXT,
+    status VARCHAR(20) DEFAULT 'PENDIENTE' CHECK (status IN ('PENDIENTE', 'APROBADO', 'RECHAZADO')),
+    rejected_reason TEXT,
     created_by INT,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_by INT,
     updated_at TIMESTAMP,
     reviewed_by INT,
     reviewed_at TIMESTAMP,
-    status VARCHAR(20) DEFAULT 'PENDIENTE' CHECK (status IN ('PENDIENTE', 'APROBADO', 'RECHAZADO')),
-    rejected_reason TEXT,
+
     CONSTRAINT fk_inventory_output_movements_inventory FOREIGN KEY (inventory_id) REFERENCES inventory(id),
     CONSTRAINT fk_inventory_output_movements_users_created_by FOREIGN KEY (created_by) REFERENCES users(id),
     CONSTRAINT fk_inventory_output_movements_users_updated_by FOREIGN KEY (updated_by) REFERENCES users(id),

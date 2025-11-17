@@ -68,6 +68,14 @@ public class UserEntity {
         return entity;
     }
 
+    public static UserEntity from(Long id, String username) {
+        UserEntity user = new UserEntity();
+        user.setId(id);
+        user.setUsername(username);
+
+        return user;
+    }
+
     public Long getId() {
         return id;
     }
