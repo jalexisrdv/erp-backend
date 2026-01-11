@@ -34,9 +34,7 @@ public class SignInService {
 
 			UserDetailsImpl details = (UserDetailsImpl) authentication.getPrincipal();
 
-			boolean isTemporalPasswordExpired = LocalDateTime.now().isAfter(details.getTokenExpirationDate());
-
-			if(isTemporalPasswordExpired) {
+			if(details.shouldResetPassword()) {
 				throw new InvalidCredentialsException();
 			}
 
