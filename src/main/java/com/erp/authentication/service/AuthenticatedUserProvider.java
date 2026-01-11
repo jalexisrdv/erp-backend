@@ -1,6 +1,7 @@
 package com.erp.authentication.service;
 
 import com.erp.authentication.configuration.UserDetailsImpl;
+import com.erp.shared.domain.Roles;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -26,6 +27,10 @@ public final class AuthenticatedUserProvider {
                 .getAuthorities()
                 .stream()
                 .anyMatch(a -> a.getAuthority().equals(role));
+    }
+
+    public boolean isAdmin() {
+        return hasRole(Roles.ADMIN.name());
     }
 
     public boolean hasPermission(String permission) {

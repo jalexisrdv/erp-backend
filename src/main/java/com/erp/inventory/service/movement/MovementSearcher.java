@@ -1,9 +1,11 @@
 package com.erp.inventory.service.movement;
 
+import com.erp.authentication.service.AuthenticatedUserProvider;
 import com.erp.inventory.dto.MovementFilterDTO;
 import com.erp.inventory.entity.MovementEntity;
 import com.erp.inventory.repository.InventoryMovementRepository;
 import com.erp.shared.domain.PaginationRules;
+import com.erp.shared.domain.Roles;
 import com.erp.shared.dto.pagination.PaginatedSearchRequestDTO;
 import com.erp.shared.dto.pagination.ResponsePaginationDTO;
 import org.slf4j.Logger;
@@ -23,9 +25,11 @@ public class MovementSearcher {
     private final static Logger LOG = LoggerFactory.getLogger(MovementSearcher.class);
 
     private final InventoryMovementRepository repository;
+    private final AuthenticatedUserProvider userProvider;
 
-    public MovementSearcher(InventoryMovementRepository repository) {
+    public MovementSearcher(InventoryMovementRepository repository, AuthenticatedUserProvider userProvider) {
         this.repository = repository;
+        this.userProvider = userProvider;
     }
 
     public ResponsePaginationDTO<MovementEntity> searchByPage(PaginatedSearchRequestDTO<MovementFilterDTO> paginationDTO) {
@@ -33,6 +37,10 @@ public class MovementSearcher {
             Pageable pageable = PageRequest.of(paginationDTO.page().number(), PaginationRules.FETCH_SIZE, Sort.by("createdAt").descending());
 
             Specification<MovementEntity> specification = null;
+
+            if(!userProvider.isAdmin()) {
+                specification = MovementSpecification.isUserdId(userProvider.getUserId());
+            }
 
             if(paginationDTO.hasFilter() && paginationDTO.filter().hasArticleId()) {
                 specification = MovementSpecification.isArticleId(paginationDTO.filter().articleId());
@@ -58,6 +66,12 @@ public class MovementSearcher {
     }
 
     private class MovementSpecification {
+
+        public static Specification<MovementEntity> isUserdId(Long userId) {
+            return (root, query, builder) -> {
+                return builder.equal(root.get("createdBy").get("id"), userId);
+            };
+        }
 
         public static Specification<MovementEntity> isArticleId(Long value) {
             return (root, query, builder) -> {
