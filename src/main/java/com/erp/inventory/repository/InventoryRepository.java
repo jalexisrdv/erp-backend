@@ -14,7 +14,7 @@ public interface InventoryRepository extends JpaRepository<InventoryEntity, Long
     @Modifying
     @Query("""
         UPDATE InventoryEntity item
-        SET item.pendingEntryCount = (SELECT COALESCE(SUM(movement.quantity), 0) FROM InventoryMovementEntity movement WHERE movement.item.id = :id AND movement.type = 'ENTRADA' AND movement.status = 'PENDIENTE')
+        SET item.pendingEntryCount = (SELECT COALESCE(SUM(movement.quantity), 0) FROM MovementEntity movement WHERE movement.item.id = :id AND movement.type = 'ENTRADA' AND movement.status = 'PENDIENTE')
         WHERE item.id = :id
     """)
     int updatePendingEntryCount(Long id);
@@ -22,7 +22,7 @@ public interface InventoryRepository extends JpaRepository<InventoryEntity, Long
     @Modifying
     @Query("""
         UPDATE InventoryEntity item
-        SET item.entryCount = (SELECT COALESCE(SUM(movement.quantity), 0) FROM InventoryMovementEntity movement WHERE movement.item.id = :id AND movement.type = 'ENTRADA' AND movement.status <> 'PENDIENTE')
+        SET item.entryCount = (SELECT COALESCE(SUM(movement.quantity), 0) FROM MovementEntity movement WHERE movement.item.id = :id AND movement.type = 'ENTRADA' AND movement.status <> 'PENDIENTE')
         WHERE item.id = :id
     """)
     int updateEntryCount(Long id);
@@ -30,7 +30,7 @@ public interface InventoryRepository extends JpaRepository<InventoryEntity, Long
     @Modifying
     @Query("""
         UPDATE InventoryEntity item
-        SET item.outputCount = (SELECT COALESCE(SUM(movement.quantity), 0) FROM InventoryMovementEntity movement WHERE movement.item.id = :id AND movement.type = 'SALIDA' AND movement.status <> 'PENDIENTE')
+        SET item.outputCount = (SELECT COALESCE(SUM(movement.quantity), 0) FROM MovementEntity movement WHERE movement.item.id = :id AND movement.type = 'SALIDA' AND movement.status <> 'PENDIENTE')
         WHERE item.id = :id
     """)
     int updateOutputCount(Long id);
@@ -38,7 +38,7 @@ public interface InventoryRepository extends JpaRepository<InventoryEntity, Long
     @Modifying
     @Query("""
         UPDATE InventoryEntity item
-        SET item.reservedOutputCount = (SELECT COALESCE(SUM(movement.quantity), 0) FROM InventoryMovementEntity movement WHERE movement.item.id = :id AND movement.type = 'SALIDA' AND movement.status = 'PENDIENTE')
+        SET item.reservedOutputCount = (SELECT COALESCE(SUM(movement.quantity), 0) FROM MovementEntity movement WHERE movement.item.id = :id AND movement.type = 'SALIDA' AND movement.status = 'PENDIENTE')
         WHERE item.id = :id
     """)
     int updateReservedOutputCount(Long id);
