@@ -24,7 +24,7 @@ public abstract class AbstractMapper<D, E> {
 
 	public ResponsePaginationDTO<D> fromPagination(ResponsePaginationDTO<E> pagination) {
 
-		List<D> roles = pagination.data().stream().map((entity) -> {
+		List<D> data = pagination.data().stream().map((entity) -> {
 			return fromEntity(entity);
 		}).toList();
 
@@ -33,7 +33,7 @@ public abstract class AbstractMapper<D, E> {
 				pagination.page().size(),
 				pagination.page().pages(),
 				pagination.page().items(),
-				roles
+				data
 		);
 	}
 

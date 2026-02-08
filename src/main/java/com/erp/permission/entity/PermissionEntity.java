@@ -10,7 +10,7 @@ public class PermissionEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "permission")
+    @Column(name = "name")
     private String name;
 
     public static PermissionEntity create(Long id, String name) {

@@ -32,6 +32,15 @@ public final class UserCrud {
         this.repository = repository;
     }
 
+    public List<UserEntity> findAll() {
+        try {
+            return repository.findAll();
+        } catch(Exception e) {
+            LOG.error(e.getMessage(), e);
+            throw e;
+        }
+    }
+
     public UserEntity create(UserEntity entity) {
         try {
             if(repository.findByUsername(entity.getUsername()).isPresent()) {
@@ -132,4 +141,5 @@ public final class UserCrud {
             throw e;
         }
     }
+
 }

@@ -76,6 +76,10 @@ public class UserEntity {
         return user;
     }
 
+    public String fullName() {
+        return firstName + " " + middleName + " " + lastName + " "  + secondLastName;
+    }
+
     public Long getId() {
         return id;
     }

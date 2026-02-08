@@ -4,8 +4,10 @@ import com.erp.shared.domain.ResponseWrapper;
 import com.erp.shared.dto.pagination.PaginationRequestDTO;
 import com.erp.shared.dto.pagination.ResponsePaginationDTO;
 import com.erp.user.dto.RoleDTO;
+import com.erp.user.dto.UserCatalogDTO;
 import com.erp.user.dto.UserDTO;
 import com.erp.user.mapper.RoleMapper;
+import com.erp.user.mapper.UserCatalogMapper;
 import com.erp.user.mapper.UserMapper;
 import com.erp.user.service.UserCrud;
 import org.springframework.http.ResponseEntity;
@@ -18,13 +20,20 @@ import java.util.List;
 public final class UserController {
 
     private final UserCrud crud;
+    private final UserCatalogMapper userCatalogMapper;
     private final UserMapper userMapper;
     private final RoleMapper roleMapper;
 
     public UserController(UserCrud crud) {
         this.crud = crud;
+        this.userCatalogMapper = new UserCatalogMapper();
         this.userMapper = new UserMapper();
         this.roleMapper = new RoleMapper();
+    }
+
+    @GetMapping(value = "/catalog")
+    public ResponseEntity<ResponseWrapper<List<UserCatalogDTO>>> findAll() {
+        return ResponseWrapper.ok(userCatalogMapper.fromEntity(crud.findAll()));
     }
 
     @PostMapping

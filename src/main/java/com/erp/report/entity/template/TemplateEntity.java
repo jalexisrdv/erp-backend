@@ -1,10 +1,10 @@
-package com.erp.inventory.entity;
+package com.erp.report.entity.template;
 
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "item_categories")
-public final class ItemCategoryEntity {
+@Table(name = "report_templates")
+public final class TemplateEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -13,13 +13,17 @@ public final class ItemCategoryEntity {
     @Column(name = "name")
     private String name;
 
-    public static ItemCategoryEntity create(Long id, String name) {
-        ItemCategoryEntity entity = new ItemCategoryEntity();
+    public static TemplateEntity create(Long id, String name) {
+        TemplateEntity entity = new TemplateEntity();
 
         entity.setId(id);
         entity.setName(name);
 
         return entity;
+    }
+
+    public void update(String name) {
+        this.setName(name);
     }
 
     public Long getId() {
@@ -37,5 +41,4 @@ public final class ItemCategoryEntity {
     public void setName(String name) {
         this.name = name;
     }
-
 }
