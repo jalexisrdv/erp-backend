@@ -18,7 +18,7 @@ public final class SectionMapper extends AbstractMapper<SectionDTO, SectionEntit
     public SectionDTO fromEntity(SectionEntity entity) {
         return new SectionDTO(
                 entity.getId(),
-                entity.getTemplateId(),
+                entity.getTemplate().getId(),
                 entity.getName()
         );
     }

@@ -2,8 +2,10 @@ package com.erp.report.controller.template;
 
 import com.erp.report.dto.template.TemplateCatalogDTO;
 import com.erp.report.dto.template.TemplateDTO;
+import com.erp.report.dto.template.preview.TemplatePreviewDTO;
 import com.erp.report.mapper.template.TemplateCatalogMapper;
 import com.erp.report.mapper.template.TemplateMapper;
+import com.erp.report.mapper.template.TemplatePreviewMapper;
 import com.erp.report.service.template.TemplateCrud;
 import com.erp.shared.domain.ResponseWrapper;
 import com.erp.shared.dto.pagination.PaginationRequestDTO;
@@ -19,12 +21,19 @@ public final class TemplateController {
 
     private final TemplateCrud crud;
     private final TemplateMapper mapper;
+    private final TemplatePreviewMapper templatePreviewMapper;
     private final TemplateCatalogMapper catalogMapper;
 
     public TemplateController(TemplateCrud crud) {
         this.crud = crud;
         this.mapper = new TemplateMapper();
+        this.templatePreviewMapper = new TemplatePreviewMapper();
         this.catalogMapper = new TemplateCatalogMapper();
+    }
+
+    @GetMapping(value = "/preview")
+    public ResponseEntity<ResponseWrapper<TemplatePreviewDTO>> findWithSectionsAndItemsById(@RequestParam(name = "id") Long id) {
+        return ResponseWrapper.ok(templatePreviewMapper.fromEntity(crud.findWithSectionsAndItemsById(id)));
     }
 
     @GetMapping(value = "/catalog")

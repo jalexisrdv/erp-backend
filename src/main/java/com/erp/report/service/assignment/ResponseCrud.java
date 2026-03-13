@@ -3,6 +3,7 @@ package com.erp.report.service.assignment;
 import com.erp.report.entity.assignment.ResponseEntity;
 import com.erp.report.exception.assignment.response.ResponseAlreadyExistsException;
 import com.erp.report.exception.assignment.response.ResponseDoesNotExistException;
+import com.erp.report.repository.assignment.AssigmentRepository;
 import com.erp.report.repository.assignment.ResponseRepository;
 import com.erp.shared.domain.DomainError;
 import com.erp.shared.domain.PaginationRules;
@@ -17,8 +18,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 @Service
 public final class ResponseCrud {
 
@@ -26,21 +25,8 @@ public final class ResponseCrud {
 
     private final ResponseRepository repository;
 
-    public ResponseCrud(ResponseRepository repository) {
+    public ResponseCrud(ResponseRepository repository, AssigmentRepository assigmentRepository) {
         this.repository = repository;
-    }
-
-    public List<ResponseEntity> findByTemplateId(Long templateId) {
-        try {
-            List<ResponseEntity> responses = repository.findByTemplateId(templateId);
-            return responses;
-        } catch(DomainError e) {
-            LOG.info(e.getMessage(), e);
-            throw e;
-        } catch(Exception e) {
-            LOG.error(e.getMessage(), e);
-            throw e;
-        }
     }
 
     public ResponseEntity create(ResponseEntity entity) {

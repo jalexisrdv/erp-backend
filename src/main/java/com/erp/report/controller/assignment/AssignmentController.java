@@ -1,7 +1,9 @@
 package com.erp.report.controller.assignment;
 
 import com.erp.report.dto.assignment.AssignmentDTO;
+import com.erp.report.dto.response.detail.ReportDTO;
 import com.erp.report.mapper.assignment.AssignmentMapper;
+import com.erp.report.mapper.assignment.ReportPreviewMapper;
 import com.erp.report.service.assignment.AssigmentCrud;
 import com.erp.shared.domain.ResponseWrapper;
 import com.erp.shared.dto.pagination.PaginationRequestDTO;
@@ -15,10 +17,17 @@ public final class AssignmentController {
 
     private final AssigmentCrud crud;
     private final AssignmentMapper mapper;
+    private final ReportPreviewMapper reportMapper;
 
     public AssignmentController(AssigmentCrud crud) {
         this.crud = crud;
         this.mapper = new AssignmentMapper();
+        this.reportMapper = new ReportPreviewMapper();
+    }
+
+    @GetMapping(value = "/preview")
+    public ResponseEntity<ResponseWrapper<ReportDTO>> create(@RequestParam(value = "id") Long id) {
+        return ResponseWrapper.ok(reportMapper.fromEntity(crud.findWithTemplateAndResponsesById(id)));
     }
 
     @PostMapping

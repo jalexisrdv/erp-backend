@@ -32,7 +32,7 @@ public final class SectionCrud {
 
     public SectionEntity create(SectionEntity entity) {
         try {
-            if(repository.findByTemplateIdAndName(entity.getTemplateId(), entity.getName()).isPresent()) {
+            if(repository.findByTemplateIdAndName(entity.getTemplate().getId(), entity.getName()).isPresent()) {
                 throw new SectionAlreadyExistsException();
             }
 

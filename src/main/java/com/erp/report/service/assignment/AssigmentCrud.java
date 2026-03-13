@@ -2,12 +2,15 @@ package com.erp.report.service.assignment;
 
 import com.erp.report.entity.assignment.AssignmentEntity;
 import com.erp.report.entity.assignment.ResponseEntity;
-import com.erp.report.entity.template.ItemEntity;
+import com.erp.report.entity.template.TemplateEntity;
 import com.erp.report.exception.assignment.AssigmentDoesNotExistException;
+import com.erp.report.exception.assignment.IncompleteTemplateException;
+import com.erp.report.exception.template.TemplateDoesNotExistException;
 import com.erp.report.repository.assignment.AssigmentRepository;
 import com.erp.report.repository.assignment.ResponseRepository;
-import com.erp.report.repository.template.ItemRepository;
+import com.erp.report.repository.template.TemplateRepository;
 import com.erp.shared.domain.DomainError;
+import com.erp.shared.domain.DomainErrorType;
 import com.erp.shared.domain.PaginationRules;
 import com.erp.shared.dto.pagination.PaginationRequestDTO;
 import com.erp.shared.dto.pagination.ResponsePaginationDTO;
@@ -25,7 +28,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class AssigmentCrud {
@@ -33,44 +35,58 @@ public class AssigmentCrud {
     private final static Logger LOG = LoggerFactory.getLogger(AssigmentCrud.class);
 
     private final AssigmentRepository assignmentRepository;
-    private final ItemRepository itemRepository;
+    private final TemplateRepository templateRepository;
     private final ResponseRepository responseRepository;
 
-    public AssigmentCrud(AssigmentRepository assignmentRepository, ItemRepository itemRepository, ResponseRepository responseRepository) {
+    public AssigmentCrud(AssigmentRepository assignmentRepository, TemplateRepository templateRepository, ResponseRepository responseRepository) {
         this.assignmentRepository = assignmentRepository;
-        this.itemRepository = itemRepository;
+        this.templateRepository = templateRepository;
         this.responseRepository = responseRepository;
     }
 
     @Transactional
     public AssignmentEntity create(AssignmentEntity entity) {
         try {
-            List<ItemEntity> items = itemRepository.findByTemplateId(entity.getTemplate().getId());
-
-            if(items.isEmpty()) {
-                throw new RuntimeException("No puedes asignar una plantilla vacia");
-            }
+            TemplateEntity templateEntity = templateRepository.findWithSectionsAndItemsById(entity.getTemplate().getId()).orElseThrow(() -> new TemplateDoesNotExistException(DomainErrorType.DEPENDENCY));
 
             AssignmentEntity assignment = assignmentRepository.save(entity);
 
-            List<ResponseEntity> responses = items
-            .stream().map( item -> {
-                return ResponseEntity.create(
-                        null,
-                        assignment.getId(),
-                        item.getId(),
-                        null,
-                        null
-                );
-            }).collect(Collectors.toList());
+            List<ResponseEntity> responses = templateEntity.getSections().stream()
+                    .flatMap(section -> {
+                        if (section.getItems().isEmpty()) {
+                            throw new IncompleteTemplateException(DomainErrorType.DEPENDENCY);
+                        }
+
+                        return section.getItems().stream();
+                    })
+                    .map(item -> ResponseEntity.create(
+                            null,
+                            assignment.getId(),
+                            item.getId(),
+                            null,
+                            null
+                    ))
+                    .toList();
 
             responseRepository.saveAll(responses);
 
             return assignment;
-        } catch(DomainError e) {
+        } catch (DomainError e) {
             LOG.info(e.getMessage(), e);
             throw e;
-        } catch(Exception e) {
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
+            throw e;
+        }
+    }
+
+    public AssignmentEntity findWithTemplateAndResponsesById(Long id) {
+        try {
+            return assignmentRepository.findWithTemplateAndResponsesById(id).orElseThrow(() -> new AssigmentDoesNotExistException());
+        } catch (DomainError e) {
+            LOG.info(e.getMessage(), e);
+            throw e;
+        } catch (Exception e) {
             LOG.error(e.getMessage(), e);
             throw e;
         }
@@ -91,10 +107,10 @@ public class AssigmentCrud {
             );
 
             return assignmentRepository.save(entityFound);
-        } catch(DomainError e) {
+        } catch (DomainError e) {
             LOG.info(e.getMessage(), e);
             throw e;
-        } catch(Exception e) {
+        } catch (Exception e) {
             LOG.error(e.getMessage(), e);
             throw e;
         }
@@ -123,7 +139,7 @@ public class AssigmentCrud {
                     page.getTotalElements(),
                     page.getContent()
             );
-        } catch(Exception e) {
+        } catch (Exception e) {
             LOG.error(e.getMessage(), e);
             throw e;
         }
@@ -132,7 +148,7 @@ public class AssigmentCrud {
     public void deleteById(Long id) {
         try {
             assignmentRepository.deleteById(id);
-        } catch(Exception e) {
+        } catch (Exception e) {
             LOG.error(e.getMessage(), e);
             throw e;
         }

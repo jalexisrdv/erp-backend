@@ -7,6 +7,8 @@ import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "report_assignments")
@@ -48,6 +50,9 @@ public final class AssignmentEntity {
 
     @Column(name = "status")
     private String status = "PENDIENTE";
+
+    @OneToMany(mappedBy = "assignment", fetch = FetchType.LAZY)
+    private Set<ResponseEntity> responses = new HashSet<>();
 
     public static AssignmentEntity create(Long id, Long templateId, Integer unitNumber, Long operatorUserId, Long mechanicUserId, String mileage, String nextService, String timeIn, String timeOut) {
         TemplateEntity template = new TemplateEntity();
@@ -180,4 +185,11 @@ public final class AssignmentEntity {
         this.status = status;
     }
 
+    public Set<ResponseEntity> getResponses() {
+        return responses;
+    }
+
+    public void setResponses(Set<ResponseEntity> responses) {
+        this.responses = responses;
+    }
 }

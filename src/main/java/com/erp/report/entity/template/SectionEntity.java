@@ -2,6 +2,9 @@ package com.erp.report.entity.template;
 
 import jakarta.persistence.*;
 
+import java.util.HashSet;
+import java.util.Set;
+
 @Entity
 @Table(name = "report_sections")
 public final class SectionEntity {
@@ -10,17 +13,24 @@ public final class SectionEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "template_id")
-    private Long templateId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "template_id")
+    private TemplateEntity template;
 
     @Column(name = "name")
     private String name;
 
+    @OneToMany(mappedBy = "section", fetch = FetchType.LAZY)
+    private Set<ItemEntity> items = new HashSet<>();
+
     public static SectionEntity create(Long id, Long templateId, String name) {
+        TemplateEntity template = new TemplateEntity();
+        template.setId(templateId);
+
         SectionEntity entity = new SectionEntity();
 
         entity.setId(id);
-        entity.setTemplateId(templateId);
+        entity.setTemplate(template);
         entity.setName(name);
 
         return entity;
@@ -38,12 +48,12 @@ public final class SectionEntity {
         this.id = id;
     }
 
-    public Long getTemplateId() {
-        return templateId;
+    public TemplateEntity getTemplate() {
+        return template;
     }
 
-    public void setTemplateId(Long templateId) {
-        this.templateId = templateId;
+    public void setTemplate(TemplateEntity template) {
+        this.template = template;
     }
 
     public String getName() {
@@ -53,4 +63,26 @@ public final class SectionEntity {
     public void setName(String name) {
         this.name = name;
     }
+
+    public Set<ItemEntity> getItems() {
+        return items;
+    }
+
+    public void setItems(Set<ItemEntity> items) {
+        this.items = items;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ItemEntity)) return false;
+        ItemEntity that = (ItemEntity) o;
+        return id != null && id.equals(that.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
+
 }

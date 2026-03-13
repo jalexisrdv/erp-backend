@@ -1,5 +1,6 @@
 package com.erp.report.service.template;
 
+import com.erp.report.entity.template.ItemEntity;
 import com.erp.report.entity.template.TemplateEntity;
 import com.erp.report.exception.template.TemplateAlreadyExistsException;
 import com.erp.report.exception.template.TemplateDoesNotExistException;
@@ -33,6 +34,18 @@ public final class TemplateCrud {
     public List<TemplateEntity> findAll() {
         try {
             return repository.findAll();
+        } catch(Exception e) {
+            LOG.error(e.getMessage(), e);
+            throw e;
+        }
+    }
+
+    public TemplateEntity findWithSectionsAndItemsById(Long id) {
+        try {
+            return repository.findWithSectionsAndItemsById(id).orElseThrow(() -> new TemplateDoesNotExistException());
+        } catch(DomainError e) {
+            LOG.info(e.getMessage(), e);
+            throw e;
         } catch(Exception e) {
             LOG.error(e.getMessage(), e);
             throw e;
@@ -105,5 +118,4 @@ public final class TemplateCrud {
             throw e;
         }
     }
-
 }
