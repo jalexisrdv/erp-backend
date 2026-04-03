@@ -1,29 +1,36 @@
 package com.erp.report.mapper.assignment;
 
-import com.erp.report.dto.response.ResponseDTO;
+import com.erp.report.dto.response.ResponseRequestDTO;
+import com.erp.report.dto.response.ResponsesSavedDTO;
 import com.erp.report.entity.assignment.ResponseEntity;
 import com.erp.shared.mapper.AbstractMapper;
 
-public final class ResponseMapper extends AbstractMapper<ResponseDTO, ResponseEntity> {
+import java.util.List;
+
+public final class ResponseMapper extends AbstractMapper<ResponseRequestDTO, ResponseEntity> {
     @Override
-    public ResponseEntity fromDTO(ResponseDTO dto) {
+    public ResponseEntity fromDTO(ResponseRequestDTO dto) {
         return ResponseEntity.create(
                 dto.id(),
-                dto.assignmentId(),
-                dto.itemId(),
                 dto.status(),
                 dto.comment()
         );
     }
 
     @Override
-    public ResponseDTO fromEntity(ResponseEntity entity) {
-        return new ResponseDTO(
+    public ResponseRequestDTO fromEntity(ResponseEntity entity) {
+        return new ResponseRequestDTO(
                 entity.getId(),
-                entity.getAssignment().getId(),
-                entity.getItem().getId(),
                 entity.getStatus(),
                 entity.getComment()
+        );
+    }
+
+    public ResponsesSavedDTO fromEntities(List<ResponseEntity> entities) {
+        return new ResponsesSavedDTO(
+                "Todas las respuestas se guardaron correctamente.",
+                entities.size(),
+                entities.get(0).getAssignment().getId()
         );
     }
 }

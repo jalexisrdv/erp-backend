@@ -46,6 +46,16 @@ public final class ResponseEntity {
         return entity;
     }
 
+    public static ResponseEntity create(Long id, String status, String comment) {
+        ResponseEntity entity = new ResponseEntity();
+
+        entity.id = id;
+        entity.status = status;
+        entity.comment = comment;
+
+        return entity;
+    }
+
     public void update(String status, String comment) {
         if(isCommentRequired(status, comment)) {
             throw new CommentRequiredException();

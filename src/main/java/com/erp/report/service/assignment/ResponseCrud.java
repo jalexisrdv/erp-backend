@@ -1,22 +1,18 @@
 package com.erp.report.service.assignment;
 
 import com.erp.report.entity.assignment.ResponseEntity;
-import com.erp.report.exception.assignment.response.ResponseAlreadyExistsException;
-import com.erp.report.exception.assignment.response.ResponseDoesNotExistException;
+import com.erp.report.exception.assignment.response.ResponsesDoNotExistException;
 import com.erp.report.repository.assignment.AssigmentRepository;
 import com.erp.report.repository.assignment.ResponseRepository;
 import com.erp.shared.domain.DomainError;
-import com.erp.shared.domain.PaginationRules;
-import com.erp.shared.dto.pagination.PaginationRequestDTO;
-import com.erp.shared.dto.pagination.ResponsePaginationDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public final class ResponseCrud {
@@ -29,70 +25,31 @@ public final class ResponseCrud {
         this.repository = repository;
     }
 
-    public ResponseEntity create(ResponseEntity entity) {
+    public List<ResponseEntity> update(List<ResponseEntity> entities) {
         try {
-            if(repository.findByAssignmentIdAndItemId(entity.getAssignment().getId(), entity.getItem().getId()).isPresent()) {
-                throw new ResponseAlreadyExistsException();
+            List<Long> ids = entities.stream().map(ResponseEntity::getId).toList();
+
+            Map<Long, ResponseEntity> foundEntities = repository.findAllById(ids)
+                    .stream().collect(Collectors.toMap(ResponseEntity::getId, entity -> entity));
+
+            if(foundEntities.size() != ids.size()) {
+                throw new ResponsesDoNotExistException(ids);
             }
 
-            return repository.save(entity);
+            List<ResponseEntity> entitiesToUpdate = new ArrayList<>();
+
+            entities.forEach(entity -> {
+                ResponseEntity foundEntity = foundEntities.get(entity.getId());
+
+                foundEntity.update(entity.getStatus(), entity.getComment());
+
+                entitiesToUpdate.add(foundEntity);
+            });
+
+            return repository.saveAll(entitiesToUpdate);
         } catch(DomainError e) {
             LOG.info(e.getMessage(), e);
             throw e;
-        } catch(Exception e) {
-            LOG.error(e.getMessage(), e);
-            throw e;
-        }
-    }
-
-    public ResponseEntity update(ResponseEntity entity) {
-        try {
-            ResponseEntity entityFound = repository.findById(entity.getId()).orElseThrow(() -> new ResponseDoesNotExistException());
-
-            entityFound.update(
-                    entity.getStatus(),
-                    entity.getComment()
-            );
-
-            return repository.save(entityFound);
-        } catch(DomainError e) {
-            LOG.info(e.getMessage(), e);
-            throw e;
-        } catch(Exception e) {
-            LOG.error(e.getMessage(), e);
-            throw e;
-        }
-    }
-
-    public ResponsePaginationDTO<ResponseEntity> searchByPage(PaginationRequestDTO paginationDTO) {
-        try {
-            Pageable pageable = PageRequest.of(paginationDTO.page().number(), PaginationRules.FETCH_SIZE, Sort.by("id").descending());
-
-            Specification<ResponseEntity> specification = (root, query, builder) -> {
-                String search = "%" + paginationDTO.search().toLowerCase() + "%";
-                return builder.or(
-                        builder.like(builder.lower(root.get("status")), search)
-                );
-            };
-
-            Page<ResponseEntity> page = repository.findAll(specification, pageable);
-
-            return ResponsePaginationDTO.create(
-                    page.getNumber(),
-                    page.getSize(),
-                    page.getTotalPages(),
-                    page.getTotalElements(),
-                    page.getContent()
-            );
-        } catch(Exception e) {
-            LOG.error(e.getMessage(), e);
-            throw e;
-        }
-    }
-
-    public void deleteById(Long id) {
-        try {
-            repository.deleteById(id);
         } catch(Exception e) {
             LOG.error(e.getMessage(), e);
             throw e;

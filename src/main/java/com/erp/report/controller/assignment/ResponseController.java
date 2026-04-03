@@ -1,13 +1,14 @@
 package com.erp.report.controller.assignment;
 
-import com.erp.report.dto.response.ResponseDTO;
+import com.erp.report.dto.response.ResponseRequestDTO;
+import com.erp.report.dto.response.ResponsesSavedDTO;
 import com.erp.report.mapper.assignment.ResponseMapper;
 import com.erp.report.service.assignment.ResponseCrud;
 import com.erp.shared.domain.ResponseWrapper;
-import com.erp.shared.dto.pagination.PaginationRequestDTO;
-import com.erp.shared.dto.pagination.ResponsePaginationDTO;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping(value = "reports/assignments/responses")
@@ -21,25 +22,9 @@ public final class ResponseController {
         this.mapper = new ResponseMapper();
     }
 
-    @PostMapping
-    public ResponseEntity<ResponseWrapper<ResponseDTO>> create(@RequestBody ResponseDTO dto) {
-        return ResponseWrapper.ok(mapper.fromEntity(crud.create(mapper.fromDTO(dto))));
-    }
-
-    @PostMapping(value = "/pagination")
-    public ResponseEntity<ResponseWrapper<ResponsePaginationDTO<ResponseDTO>>> searchByPage(@RequestBody PaginationRequestDTO dto) {
-        return ResponseWrapper.ok(mapper.fromPagination(crud.searchByPage(dto)));
-    }
-
     @PutMapping
-    public ResponseEntity<ResponseWrapper<ResponseDTO>> update(@RequestBody ResponseDTO dto) {
-        return ResponseWrapper.ok(mapper.fromEntity(crud.update(mapper.fromDTO(dto))));
-    }
-
-    @DeleteMapping(value = "{id}")
-    public ResponseEntity<ResponseWrapper<Void>> delete(@PathVariable Long id) {
-        crud.deleteById(id);
-        return ResponseWrapper.ok(null);
+    public ResponseEntity<ResponseWrapper<ResponsesSavedDTO>> update(@RequestBody List<ResponseRequestDTO> dtos) {
+        return ResponseWrapper.ok(mapper.fromEntities(crud.update(mapper.fromDTO(dtos))));
     }
 
 }

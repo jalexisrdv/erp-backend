@@ -1,9 +1,7 @@
 package com.erp.report.dto.response;
 
-public record ResponseDTO(
+public record ResponseRequestDTO(
         Long id,
-        Long assignmentId,
-        Long itemId,
         String status,
         String comment
 ) {
