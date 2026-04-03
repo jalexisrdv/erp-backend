@@ -226,11 +226,9 @@ CREATE TABLE report_responses (
     
     CONSTRAINT ck_report_responses_comment_when_not_ok
         CHECK (
-            (status IS NULL AND comment IS NULL)
+            (status IN ('F', 'R') AND comment IS NOT NULL)
             OR
-            (status = 'OK' AND comment IS NULL)
-            OR
-            (status <> 'OK' AND comment IS NOT NULL)
+            (status = 'OK')
         ),
     
     CONSTRAINT fk_report_responses_report_assignments
