@@ -1,6 +1,7 @@
 package com.erp.permission.controller;
 
-import com.erp.permission.dto.PermissionDTO;
+import com.erp.permission.dto.PermissionRequestDTO;
+import com.erp.permission.dto.PermissionResponseDTO;
 import com.erp.permission.mapper.PermissionMapper;
 import com.erp.permission.service.PermissionCrud;
 import com.erp.shared.domain.ResponseWrapper;
@@ -16,23 +17,23 @@ public final class PermissionController {
     private final PermissionCrud crud;
     private final PermissionMapper mapper;
 
-    public PermissionController(PermissionCrud crud, PermissionMapper mapper) {
+    public PermissionController(PermissionCrud crud) {
         this.crud = crud;
-        this.mapper = mapper;
+        this.mapper = new PermissionMapper();
     }
 
     @PostMapping
-    public ResponseEntity<ResponseWrapper<PermissionDTO>> create(@RequestBody PermissionDTO dto) {
+    public ResponseEntity<ResponseWrapper<PermissionResponseDTO>> create(@RequestBody PermissionRequestDTO dto) {
         return ResponseWrapper.ok(mapper.fromEntity(crud.create(mapper.fromDTO(dto))));
     }
 
     @GetMapping
-    public ResponseEntity<ResponseWrapper<List<PermissionDTO>>> findAll() {
-        return ResponseWrapper.ok(mapper.fromEntity(crud.findAll()));
+    public ResponseEntity<ResponseWrapper<List<PermissionResponseDTO>>> findByModuleId(@RequestParam("moduleId") Long moduleId) {
+        return ResponseWrapper.ok(mapper.fromEntity(crud.findByModuleId(moduleId)));
     }
 
     @PutMapping
-    public ResponseEntity<ResponseWrapper<PermissionDTO>> update(@RequestBody PermissionDTO dto) {
+    public ResponseEntity<ResponseWrapper<PermissionResponseDTO>> update(@RequestBody PermissionRequestDTO dto) {
         return ResponseWrapper.ok(mapper.fromEntity(crud.update(mapper.fromDTO(dto))));
     }
 

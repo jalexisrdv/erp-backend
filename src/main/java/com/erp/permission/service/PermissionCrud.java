@@ -1,54 +1,76 @@
 package com.erp.permission.service;
 
 import com.erp.permission.entity.PermissionEntity;
+import com.erp.permission.entity.PermissionViewEntity;
+import com.erp.permission.exception.PermissionDoesNotExistException;
 import com.erp.permission.repository.PermissionRepository;
+import com.erp.permission.repository.PermissionViewRepository;
 import com.erp.shared.domain.DomainError;
+import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
-public final class PermissionCrud {
+@Transactional
+public class PermissionCrud {
 
     private final static Logger LOG = LoggerFactory.getLogger(PermissionCrud.class);
 
     private final PermissionRepository repository;
+    private final PermissionViewRepository viewRepository;
 
-    public PermissionCrud(PermissionRepository repository) {
+    public PermissionCrud(PermissionRepository repository, PermissionViewRepository viewRepository) {
         this.repository = repository;
+        this.viewRepository = viewRepository;
     }
 
-    public PermissionEntity create(PermissionEntity entity) {
+    public PermissionViewEntity create(PermissionEntity entity) {
         try {
-            return repository.save(entity);
+            PermissionEntity savedEntity = repository.save(entity);
+
+            return viewRepository.findById(savedEntity.getId()).orElseThrow(() -> new PermissionDoesNotExistException());
         } catch(DomainError e) {
+            LOG.info(e.getMessage(), e);
+            throw e;
+        } catch(Exception e) {
             LOG.info(e.getMessage(), e);
             throw e;
         }
     }
 
-    public List<PermissionEntity> findAll() {
-        return repository.findAll();
+    public List<PermissionViewEntity> findByModuleId(Long id) {
+        try {
+            return viewRepository.findByModuleId(id);
+        } catch(Exception e) {
+            LOG.info(e.getMessage(), e);
+            throw e;
+        }
     }
 
-    public List<PermissionEntity> fetchByPage(int pageNumber, int size) {
-        Pageable pageable = PageRequest.of(pageNumber, size, Sort.by("id").ascending());
-        Page<PermissionEntity> page = repository.findAll(pageable);
-        return page.stream().toList();
-    }
+    public PermissionViewEntity update(PermissionEntity entity) {
+        try {
+            PermissionEntity savedEntity = repository.save(entity);
 
-    public PermissionEntity update(PermissionEntity entity) {
-        return repository.save(entity);
+            return viewRepository.findById(savedEntity.getId()).orElseThrow(() -> new PermissionDoesNotExistException());
+        } catch(DomainError e) {
+            LOG.info(e.getMessage(), e);
+            throw e;
+        } catch(Exception e) {
+            LOG.info(e.getMessage(), e);
+            throw e;
+        }
     }
 
     public void deleteById(Long id) {
-        repository.deleteById(id);
+        try {
+            repository.deleteById(id);
+        } catch(Exception e) {
+            LOG.info(e.getMessage(), e);
+            throw e;
+        }
     }
 
 }

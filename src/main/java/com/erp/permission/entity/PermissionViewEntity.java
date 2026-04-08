@@ -1,13 +1,14 @@
 package com.erp.permission.entity;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.Immutable;
 
 @Entity
-@Table(name = "permissions")
-public class PermissionEntity {
+@Immutable
+@Table(name = "view_permissions")
+public class PermissionViewEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(name = "module_id")
@@ -22,17 +23,8 @@ public class PermissionEntity {
     @Column(name = "description")
     private String description;
 
-    public static PermissionEntity create(Long id, Long moduleId, String code, String name, String description) {
-        PermissionEntity entity = new PermissionEntity();
-
-        entity.id = id;
-        entity.moduleId = moduleId;
-        entity.code = code;
-        entity.name = name;
-        entity.description = description;
-
-        return entity;
-    }
+    @Column(name = "full_path")
+    private String fullPath;
 
     public Long getId() {
         return id;
@@ -72,6 +64,14 @@ public class PermissionEntity {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getFullPath() {
+        return fullPath;
+    }
+
+    public void setFullPath(String fullPath) {
+        this.fullPath = fullPath;
     }
 
 }

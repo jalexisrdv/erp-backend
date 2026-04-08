@@ -1,25 +1,38 @@
 package com.erp.permission.mapper;
 
-import com.erp.permission.dto.PermissionDTO;
+import com.erp.permission.dto.PermissionRequestDTO;
+import com.erp.permission.dto.PermissionResponseDTO;
 import com.erp.permission.entity.PermissionEntity;
-import com.erp.shared.mapper.AbstractMapper;
-import org.springframework.stereotype.Component;
+import com.erp.permission.entity.PermissionViewEntity;
 
-@Component
-public final class PermissionMapper extends AbstractMapper<PermissionDTO, PermissionEntity> {
-    @Override
-    public PermissionEntity fromDTO(PermissionDTO dto) {
+import java.util.List;
+
+public final class PermissionMapper {
+
+    public PermissionEntity fromDTO(PermissionRequestDTO dto) {
         return PermissionEntity.create(
                 dto.id(),
-                dto.name()
+                dto.moduleId(),
+                dto.code(),
+                dto.name(),
+                dto.description()
         );
     }
 
-    @Override
-    public PermissionDTO fromEntity(PermissionEntity entity) {
-        return new PermissionDTO(
+    public PermissionResponseDTO fromEntity(PermissionViewEntity entity) {
+        return new PermissionResponseDTO(
                 entity.getId(),
-                entity.getName()
+                entity.getCode(),
+                entity.getName(),
+                entity.getDescription(),
+                entity.getFullPath()
         );
     }
+
+    public List<PermissionResponseDTO> fromEntity(List<PermissionViewEntity> entities) {
+        return entities.stream()
+                .map(entity -> fromEntity(entity))
+                .toList();
+    }
+
 }
