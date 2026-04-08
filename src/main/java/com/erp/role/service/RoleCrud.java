@@ -2,13 +2,16 @@ package com.erp.role.service;
 
 import com.erp.permission.entity.PermissionEntity;
 import com.erp.role.entity.RoleEntity;
+import com.erp.role.entity.RolePermissionViewEntity;
 import com.erp.role.exception.RoleDoesNotExistException;
+import com.erp.role.repository.RolePermissionViewRepository;
 import com.erp.role.repository.RoleRepository;
 import com.erp.shared.domain.DomainError;
 import com.erp.shared.domain.DomainErrorType;
 import com.erp.shared.domain.PaginationRules;
 import com.erp.shared.dto.pagination.PaginationRequestDTO;
 import com.erp.shared.dto.pagination.ResponsePaginationDTO;
+import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -18,17 +21,20 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
-public final class RoleCrud {
+public class RoleCrud {
 
     private final static Logger LOG = LoggerFactory.getLogger(RoleCrud.class);
 
     private final RoleRepository repository;
+    private final RolePermissionViewRepository rolePermissionViewRepository;
 
-    public RoleCrud(RoleRepository repository) {
+    public RoleCrud(RoleRepository repository, RolePermissionViewRepository rolePermissionViewRepository) {
         this.repository = repository;
+        this.rolePermissionViewRepository = rolePermissionViewRepository;
     }
 
     public RoleEntity create(RoleEntity entity) {
@@ -97,12 +103,15 @@ public final class RoleCrud {
         }
     }
 
-    public List<PermissionEntity> assignPermissions(Long roleId, List<PermissionEntity> permissions) {
+    @Transactional
+    public List<RolePermissionViewEntity> assignPermissions(Long roleId, List<PermissionEntity> permissions) {
         try {
             RoleEntity role = repository.findById(roleId).orElseThrow(() -> new RoleDoesNotExistException(DomainErrorType.DEPENDENCY));
-            role.setPermissions(permissions);
+            role.setPermissions(new ArrayList<>(permissions));
 
-            return repository.save(role).getPermissions();
+            repository.save(role);
+
+            return rolePermissionViewRepository.findByRoleId(roleId);
         } catch(DomainError e) {
             LOG.info(e.getMessage(), e);
             throw e;
@@ -112,11 +121,9 @@ public final class RoleCrud {
         }
     }
 
-    public List<PermissionEntity> fetchPermissions(Long roleId) {
+    public List<RolePermissionViewEntity> findPermissionsByRoleId(Long roleId) {
         try {
-            RoleEntity role = repository.findById(roleId).orElseThrow(() -> new RoleDoesNotExistException(DomainErrorType.DEPENDENCY));
-
-            return role.getPermissions();
+            return rolePermissionViewRepository.findByRoleId(roleId);
         } catch(DomainError e) {
             LOG.info(e.getMessage(), e);
             throw e;

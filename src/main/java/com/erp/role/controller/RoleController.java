@@ -1,6 +1,7 @@
 package com.erp.role.controller;
 
-import com.erp.role.dto.PermissionDTO;
+import com.erp.role.dto.PermissionRequestDTO;
+import com.erp.role.dto.PermissionResponseDTO;
 import com.erp.role.dto.RoleDTO;
 import com.erp.role.mapper.PermissionMapper;
 import com.erp.role.mapper.RoleMapper;
@@ -54,13 +55,13 @@ public final class RoleController {
     }
 
     @PutMapping(value = "{id}/permissions")
-    public ResponseEntity<ResponseWrapper<List<PermissionDTO>>> assignPermissions(@PathVariable Long id, @RequestBody List<PermissionDTO> permissions) {
+    public ResponseEntity<ResponseWrapper<List<PermissionResponseDTO>>> assignPermissions(@PathVariable Long id, @RequestBody List<PermissionRequestDTO> permissions) {
         return ResponseWrapper.ok(permissionMapper.fromEntity(crud.assignPermissions(id, permissionMapper.fromDTO(permissions))));
     }
 
     @GetMapping(value = "{id}/permissions")
-    public ResponseEntity<ResponseWrapper<List<PermissionDTO>>> fetchPermissionsByPage(@PathVariable Long id) {
-        return ResponseWrapper.ok(permissionMapper.fromEntity(crud.fetchPermissions(id)));
+    public ResponseEntity<ResponseWrapper<List<PermissionResponseDTO>>> findPermissionsByRoleId(@PathVariable Long id) {
+        return ResponseWrapper.ok(permissionMapper.fromEntity(crud.findPermissionsByRoleId(id)));
     }
 
 }

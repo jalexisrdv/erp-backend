@@ -1,22 +1,45 @@
 package com.erp.role.mapper;
 
 import com.erp.permission.entity.PermissionEntity;
-import com.erp.role.dto.PermissionDTO;
-import com.erp.shared.mapper.AbstractMapper;
+import com.erp.role.dto.PermissionRequestDTO;
+import com.erp.role.dto.PermissionResponseDTO;
+import com.erp.role.entity.RolePermissionViewEntity;
 
-public final class PermissionMapper extends AbstractMapper<PermissionDTO, PermissionEntity> {
-    @Override
-    public PermissionEntity fromDTO(PermissionDTO dto) {
-        return PermissionEntity.withId(
-                dto.id()
+import java.util.List;
+
+public final class PermissionMapper {
+
+    public PermissionEntity fromDTO(PermissionRequestDTO dto) {
+        return PermissionEntity.create(
+                dto.id(),
+                dto.moduleId(),
+                dto.code(),
+                dto.name(),
+                dto.description()
         );
     }
 
-    @Override
-    public PermissionDTO fromEntity(PermissionEntity entity) {
-        return new PermissionDTO(
+    public PermissionResponseDTO fromEntity(RolePermissionViewEntity entity) {
+        return new PermissionResponseDTO(
                 entity.getId(),
-                entity.getName()
+                entity.getModuleId(),
+                entity.getCode(),
+                entity.getName(),
+                entity.getDescription(),
+                entity.getFullPath()
         );
     }
+
+    public List<PermissionEntity> fromDTO(List<PermissionRequestDTO> dtos) {
+        return dtos.stream()
+                .map(dto -> fromDTO(dto))
+                .toList();
+    }
+
+    public List<PermissionResponseDTO> fromEntity(List<RolePermissionViewEntity> entities) {
+        return entities.stream()
+                .map(entity -> fromEntity(entity))
+                .toList();
+    }
+
 }
