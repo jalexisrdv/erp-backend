@@ -37,12 +37,29 @@ CREATE TABLE roles (
         UNIQUE (name)
 );
 
+CREATE TABLE app_modules (
+    id SERIAL PRIMARY KEY,
+    code VARCHAR(200) NOT NULL,
+    name VARCHAR(200) NOT NULL,
+    parent_id INTEGER,
+
+    CONSTRAINT uq_app_modules_code UNIQUE (code),
+    CONSTRAINT uq_app_modules_name UNIQUE (name),
+    CONSTRAINT fk_app_modules_parent_id
+            FOREIGN KEY (parent_id)
+            REFERENCES app_modules (id)
+            ON DELETE SET NULL
+);
+
 CREATE TABLE permissions (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
+    module_id INT REFERENCES app_modules(id) ON DELETE CASCADE,
+    code VARCHAR(200) NOT NULL,
+    name VARCHAR(200) NOT NULL,
+    description TEXT,
 
-    CONSTRAINT uq_permissions_name
-        UNIQUE (name)
+    CONSTRAINT uq_permissions_code UNIQUE (code),
+    CONSTRAINT uq_permissions_name UNIQUE (name)
 );
 
 CREATE TABLE role_permissions (
