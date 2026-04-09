@@ -1,6 +1,6 @@
 package com.erp.authentication.configuration;
 
-import com.erp.authentication.repository.UserRepository;
+import com.erp.user.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

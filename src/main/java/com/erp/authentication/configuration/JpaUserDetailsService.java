@@ -1,7 +1,7 @@
 package com.erp.authentication.configuration;
 
 import com.erp.user.entity.UserEntity;
-import com.erp.authentication.repository.UserRepository;
+import com.erp.user.repository.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -16,7 +16,7 @@ public class JpaUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        UserEntity user = repository.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("Invalid credentials"));
+        UserEntity user = repository.findWithRolesAndPermissionsByUsername(username).orElseThrow(() -> new UsernameNotFoundException("Invalid credentials"));
         return UserDetailsImpl.create(user);
     }
 

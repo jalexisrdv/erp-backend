@@ -2,7 +2,7 @@ package com.erp.authentication.service;
 
 import java.util.UUID;
 
-import com.erp.authentication.repository.UserRepository;
+import com.erp.user.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;

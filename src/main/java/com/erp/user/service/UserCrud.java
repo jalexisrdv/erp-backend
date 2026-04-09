@@ -1,7 +1,7 @@
 package com.erp.user.service;
 
 import com.erp.authentication.exception.UserDoesNotExistException;
-import com.erp.authentication.repository.UserRepository;
+import com.erp.user.repository.UserRepository;
 import com.erp.role.entity.RoleEntity;
 import com.erp.shared.domain.DomainError;
 import com.erp.shared.domain.DomainErrorType;
@@ -20,6 +20,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public final class UserCrud {
@@ -116,9 +117,9 @@ public final class UserCrud {
     public List<RoleEntity> assignRoles(Long id, List<RoleEntity> roles) {
         try {
             UserEntity entity = repository.findById(id).orElseThrow(() -> new UserDoesNotExistException(DomainErrorType.DEPENDENCY));
-            entity.setRoles(roles);
+            entity.setRoles(roles.stream().collect(Collectors.toSet()));
 
-            return repository.save(entity).getRoles();
+            return repository.save(entity).getRoles().stream().toList();
         } catch(DomainError e) {
             LOG.info(e.getMessage(), e);
             throw e;
@@ -132,7 +133,7 @@ public final class UserCrud {
         try {
             UserEntity entity = repository.findById(id).orElseThrow(() -> new UserDoesNotExistException(DomainErrorType.DEPENDENCY));
 
-            return entity.getRoles();
+            return entity.getRoles().stream().toList();
         } catch(DomainError e) {
             LOG.info(e.getMessage(), e);
             throw e;

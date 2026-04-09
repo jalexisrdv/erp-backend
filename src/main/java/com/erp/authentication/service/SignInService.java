@@ -3,9 +3,8 @@ package com.erp.authentication.service;
 import com.erp.authentication.configuration.UserDetailsImpl;
 import com.erp.authentication.dto.SignInResponseDTO;
 import com.erp.authentication.exception.InvalidCredentialsException;
-import com.erp.authentication.repository.UserRepository;
+import com.erp.user.repository.UserRepository;
 import com.erp.authentication.util.JwtUtil;
-import com.erp.shared.domain.DomainErrorType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -13,8 +12,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
 
 @Service
 public class SignInService {

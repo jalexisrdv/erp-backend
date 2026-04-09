@@ -1,7 +1,8 @@
 package com.erp.user.entity;
 
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import com.erp.role.entity.RoleEntity;
 import jakarta.persistence.*;
@@ -50,7 +51,7 @@ public class UserEntity {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id")
     )
-    private List<RoleEntity> roles;
+    private Set<RoleEntity> roles = new HashSet<>();
 
     public static UserEntity create(Long id, String firstName, String middleName, String lastName, String secondLastName, String phoneNumber, String username) {
         UserEntity entity = new UserEntity();
@@ -172,11 +173,11 @@ public class UserEntity {
         this.tokenExpirationDate = tokenExpirationDate;
     }
 
-    public List<RoleEntity> getRoles() {
+    public Set<RoleEntity> getRoles() {
         return roles;
     }
 
-    public void setRoles(List<RoleEntity> roles) {
+    public void setRoles(Set<RoleEntity> roles) {
         this.roles = roles;
     }
 }
