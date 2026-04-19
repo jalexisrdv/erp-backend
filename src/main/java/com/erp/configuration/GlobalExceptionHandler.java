@@ -1,7 +1,6 @@
 package com.erp.configuration;
 
 import com.erp.shared.domain.DomainError;
-import com.erp.shared.domain.DomainErrorType;
 import com.erp.shared.domain.ResponseWrapper;
 import com.erp.shared.exeption.UnexpectedException;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
@@ -20,6 +19,8 @@ public class GlobalExceptionHandler {
 		HttpStatusCode httpStatusCode = switch (e.errorType()) {
 			case DOMAIN -> HttpStatus.BAD_REQUEST;
 			case DEPENDENCY -> HttpStatus.CONFLICT;
+			case FORBIDDEN -> HttpStatus.FORBIDDEN;
+			case NOT_FOUND -> HttpStatus.NOT_FOUND;
 		};
 
 		return ResponseWrapper.create(httpStatusCode, e.getMessage());

@@ -12,6 +12,20 @@ DROP TABLE IF EXISTS report_items CASCADE;
 DROP TABLE IF EXISTS report_sections CASCADE;
 DROP TABLE IF EXISTS report_templates CASCADE;
 
+CREATE TABLE refresh_tokens (
+    id SERIAL PRIMARY KEY,
+    token TEXT NOT NULL,
+    user_id INT NOT NULL,
+    expiry_date TIMESTAMPTZ NOT NULL,
+
+    CONSTRAINT uq_refresh_token UNIQUE (token),
+
+    CONSTRAINT fk_user_refresh_tokens
+        FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE
+);
+
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     first_name VARCHAR(200) NOT NULL,

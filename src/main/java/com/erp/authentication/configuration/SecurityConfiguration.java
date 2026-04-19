@@ -34,10 +34,7 @@ public class SecurityConfiguration {
                 .cors(cors -> {})
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        //.requestMatchers("/admin/**").hasRole("ADMIN")
-                        //.requestMatchers("/user/**").hasAnyRole("USER", "ADMIN")
-                        //.requestMatchers("/auth/**").permitAll()
-                        .requestMatchers("/**").permitAll()
+                        .requestMatchers("/auth/login", "/auth/refresh").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

@@ -1,6 +1,6 @@
 package com.erp.user.service;
 
-import com.erp.authentication.exception.UserDoesNotExistException;
+import com.erp.user.exception.UserDoesNotExistException;
 import com.erp.user.repository.UserRepository;
 import com.erp.role.entity.RoleEntity;
 import com.erp.shared.domain.DomainError;

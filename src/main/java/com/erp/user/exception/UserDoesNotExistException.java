@@ -1,4 +1,4 @@
-package com.erp.authentication.exception;
+package com.erp.user.exception;
 
 import com.erp.shared.domain.DomainError;
 import com.erp.shared.domain.DomainErrorType;

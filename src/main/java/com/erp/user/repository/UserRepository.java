@@ -12,6 +12,9 @@ public interface UserRepository extends JpaRepository<UserEntity, Long>, JpaSpec
     @EntityGraph(attributePaths = {"roles", "roles.permissions"})
     Optional<UserEntity> findWithRolesAndPermissionsByUsername(String username);
 
+    @EntityGraph(attributePaths = {"roles", "roles.permissions"})
+    Optional<UserEntity> findWithRolesAndPermissionsById(Long id);
+
     Optional<UserEntity> findByUsername(String username);
 
     Optional<UserEntity> findByUsernameAndToken(String username, String token);

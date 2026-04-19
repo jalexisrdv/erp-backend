@@ -42,8 +42,8 @@ public class UserDetailsImpl implements UserDetails, CredentialsContainer {
             authorities.add(new SimpleGrantedAuthority("ROLE_" + role.getName()));
 
             for (PermissionEntity permission : role.getPermissions()) {
-                permissions.add(permission.getName());
-                authorities.add(new SimpleGrantedAuthority(permission.getName()));
+                permissions.add(permission.getCode());
+                authorities.add(new SimpleGrantedAuthority(permission.getCode()));
             }
         }
 
@@ -56,6 +56,12 @@ public class UserDetailsImpl implements UserDetails, CredentialsContainer {
                 authorities,
                 user.getTokenExpirationDate()
         );
+    }
+
+    public Map<String, Object> claims() {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("permissions", permissions);
+        return claims;
     }
 
     public Long getId() {

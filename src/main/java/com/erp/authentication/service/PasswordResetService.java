@@ -7,7 +7,7 @@ import com.erp.authentication.dto.ResetPasswordTokenDTO;
 import com.erp.shared.domain.DomainErrorType;
 import com.erp.user.entity.UserEntity;
 import com.erp.authentication.exception.InvalidPasswordResetTokenException;
-import com.erp.authentication.exception.UserDoesNotExistException;
+import com.erp.user.exception.UserDoesNotExistException;
 import com.erp.user.repository.UserRepository;
 import com.erp.shared.domain.DomainError;
 import com.erp.authentication.util.BCryptPasswordEncoderUtil;
