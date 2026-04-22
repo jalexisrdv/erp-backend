@@ -2,6 +2,7 @@ package com.erp.authentication.service;
 
 import com.erp.authentication.configuration.UserDetailsImpl;
 import com.erp.authentication.dto.LoginResponseDTO;
+import com.erp.authentication.exception.PasswordExpiredException;
 import com.erp.authentication.entity.RefreshTokenEntity;
 import com.erp.authentication.exception.InvalidCredentialsException;
 import com.erp.shared.domain.DomainError;
@@ -13,6 +14,7 @@ import com.erp.authentication.util.JwtUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.CredentialsExpiredException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -46,6 +48,11 @@ public class AuthenticationService {
 					JwtUtil.generateToken(username, details.claims()),
 					refreshToken
 			);
+		} catch(CredentialsExpiredException e) {
+			PasswordExpiredException exception = new PasswordExpiredException(username);
+
+			LOG.info(exception.getMessage());
+			throw exception;
 		} catch (AuthenticationException e) {
 			LOG.info(e.getMessage(), e);
 			throw new InvalidCredentialsException();

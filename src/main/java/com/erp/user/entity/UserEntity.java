@@ -1,6 +1,5 @@
 package com.erp.user.entity;
 
-import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -37,13 +36,10 @@ public class UserEntity {
     private String password;
 
     @Column(name = "enabled")
-    private Boolean enabled;
+    private Boolean enabled = true;
 
-    @Column(name = "token")
-    private String token;
-
-    @Column(name = "token_expiration_date")
-    private LocalDateTime tokenExpirationDate;
+    @Column(name = "credentials_expired")
+    private Boolean credentialsExpired = false;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
@@ -75,6 +71,16 @@ public class UserEntity {
         user.setUsername(username);
 
         return user;
+    }
+
+    public void resetPassword(String password) {
+        this.password = password;
+        this.credentialsExpired = true;
+    }
+
+    public void changePassword(String password) {
+        this.password = password;
+        this.credentialsExpired = false;
     }
 
     public String fullName() {
@@ -157,20 +163,12 @@ public class UserEntity {
         this.enabled = enabled;
     }
 
-    public String getToken() {
-        return token;
+    public Boolean getCredentialsExpired() {
+        return credentialsExpired;
     }
 
-    public void setToken(String token) {
-        this.token = token;
-    }
-
-    public LocalDateTime getTokenExpirationDate() {
-        return tokenExpirationDate;
-    }
-
-    public void setTokenExpirationDate(LocalDateTime tokenExpirationDate) {
-        this.tokenExpirationDate = tokenExpirationDate;
+    public void setCredentialsExpired(Boolean credentialsExpired) {
+        this.credentialsExpired = credentialsExpired;
     }
 
     public Set<RoleEntity> getRoles() {

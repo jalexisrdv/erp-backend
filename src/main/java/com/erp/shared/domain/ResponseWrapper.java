@@ -7,17 +7,26 @@ import org.springframework.http.ResponseEntity;
 public class ResponseWrapper<T> {
 	
 	private boolean ok;
+	private String action;
 	private String message;
 	private T body;
-	
+
 	public ResponseWrapper(boolean ok, T body, String message) {
 		this.ok = ok;
 		this.message = message;
 		this.body = body;
+		this.action = "NONE";
 	}
 
-	public static <T> ResponseEntity<ResponseWrapper<T>> create(HttpStatusCode httpStatusCode, String message) {
-		ResponseWrapper<T> response = new ResponseWrapper<>(true, null, message);
+	public ResponseWrapper(boolean ok, T body, String message, String action) {
+		this.ok = ok;
+		this.message = message;
+		this.body = body;
+		this.action = action;
+	}
+
+	public static <T> ResponseEntity<ResponseWrapper<T>> domainError(HttpStatusCode httpStatusCode, String message, String action) {
+		ResponseWrapper<T> response = new ResponseWrapper<>(false, null, message, action);
 		return new ResponseEntity<>(response, httpStatusCode);
 	}
 	
@@ -36,19 +45,9 @@ public class ResponseWrapper<T> {
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 	
-	public static ResponseEntity<Object> objectBadRequest(String message) {
-		ResponseWrapper<Object> response = new ResponseWrapper<>(false, null, message);
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-    }
-	
 	public static <T> ResponseEntity<ResponseWrapper<T>> internalServerError(String message) {
 		ResponseWrapper<T> response = new ResponseWrapper<>(false, null, message);
         return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-	
-	public static <T> ResponseEntity<ResponseWrapper<T>> notFound(String message) {
-		ResponseWrapper<T> response = new ResponseWrapper<>(false, null, message);
-        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
     }
 
 	public boolean isOk() {
@@ -57,6 +56,14 @@ public class ResponseWrapper<T> {
 
 	public void setOk(boolean ok) {
 		this.ok = ok;
+	}
+
+	public String getAction() {
+		return action;
+	}
+
+	public void setAction(String action) {
+		this.action = action;
 	}
 
 	public String getMessage() {

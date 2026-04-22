@@ -23,12 +23,11 @@ public class GlobalExceptionHandler {
 			case NOT_FOUND -> HttpStatus.NOT_FOUND;
 		};
 
-		return ResponseWrapper.create(httpStatusCode, e.getMessage());
+		return ResponseWrapper.domainError(httpStatusCode, e.getMessage(), e.action());
 	}
 
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<?> handleException(Exception e) {
-		e.printStackTrace();
 		return ResponseWrapper.internalServerError(UnexpectedException.MESSAGE);
 	}
 

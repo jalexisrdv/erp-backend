@@ -2,7 +2,7 @@ package com.erp.authentication.controller;
 
 import com.erp.authentication.dto.*;
 import com.erp.authentication.dto.LoginResponseDTO;
-import com.erp.authentication.service.PasswordResetService;
+import com.erp.authentication.service.PasswordService;
 import com.erp.authentication.service.AuthenticationService;
 import com.erp.shared.domain.ResponseWrapper;
 import org.springframework.http.ResponseEntity;
@@ -13,9 +13,9 @@ import org.springframework.web.bind.annotation.*;
 public final class AuthenticationController {
 
     private final AuthenticationService signInService;
-    private final PasswordResetService passwordResetService;
+    private final PasswordService passwordResetService;
 
-    public AuthenticationController(AuthenticationService signInService, PasswordResetService passwordResetService) {
+    public AuthenticationController(AuthenticationService signInService, PasswordService passwordResetService) {
         this.signInService = signInService;
         this.passwordResetService = passwordResetService;
     }
@@ -30,14 +30,14 @@ public final class AuthenticationController {
         return ResponseWrapper.ok(signInService.refreshToken(dto.refreshToken()));
     }
 
-    @PostMapping("/reset-password/request-token")
-    public ResponseEntity<ResponseWrapper<ResetPasswordTokenDTO>> generateResetPasswordToken(@RequestBody ResetPasswordTokenDTO dto) {
-        return ResponseWrapper.ok(passwordResetService.generateToken(dto));
+    @PostMapping("/reset-password")
+    public ResponseEntity<ResponseWrapper<ResetPasswordDTO>> resetPassword(@RequestBody ResetPasswordDTO dto) {
+        return ResponseWrapper.ok(passwordResetService.reset(dto));
     }
 
-    @PostMapping("/reset-password")
-    public ResponseEntity<ResponseWrapper<Void>> resetPassword(@RequestBody ResetPasswordDTO dto) {
-        passwordResetService.reset(dto);
+    @PostMapping("/change-password")
+    public ResponseEntity<ResponseWrapper<Void>> changePassword(@RequestBody ChangePasswordDTO dto) {
+        passwordResetService.change(dto);
         return ResponseWrapper.ok(null, "Tu contraseña ha sido actualizada correctamente. Ya puedes acceder a tu cuenta.");
     }
 

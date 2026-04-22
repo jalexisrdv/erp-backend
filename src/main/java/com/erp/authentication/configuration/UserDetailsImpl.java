@@ -1,6 +1,5 @@
 package com.erp.authentication.configuration;
 
-import java.time.LocalDateTime;
 import java.util.*;
 
 import com.erp.permission.entity.PermissionEntity;
@@ -19,17 +18,17 @@ public class UserDetailsImpl implements UserDetails, CredentialsContainer {
     private final Set<String> roles;
     private final Set<String> permissions;
     private final Collection<? extends GrantedAuthority> authorities;
-    private LocalDateTime tokenExpirationDate;
+    private boolean credentialsExpired;
 
     private UserDetailsImpl(Long id, String username, String password, Set<String> roles, Set<String> permissions,
-                            Set<GrantedAuthority> authorities, LocalDateTime tokenExpirationDate) {
+                            Set<GrantedAuthority> authorities, boolean credentialsExpired) {
         this.id = id;
         this.username = username;
         this.password = password;
         this.roles = roles;
         this.permissions = permissions;
         this.authorities = authorities;
-        this.tokenExpirationDate = tokenExpirationDate;
+        this.credentialsExpired = credentialsExpired;
     }
 
     public static UserDetailsImpl create(UserEntity user) {
@@ -54,7 +53,7 @@ public class UserDetailsImpl implements UserDetails, CredentialsContainer {
                 roles,
                 permissions,
                 authorities,
-                user.getTokenExpirationDate()
+                user.getCredentialsExpired()
         );
     }
 
@@ -76,14 +75,6 @@ public class UserDetailsImpl implements UserDetails, CredentialsContainer {
         return permissions;
     }
 
-    public LocalDateTime getTokenExpirationDate() {
-        return tokenExpirationDate;
-    }
-
-    public boolean shouldResetPassword() {
-        return tokenExpirationDate != null;
-    }
-
     @Override
     public String getUsername() {
         return username;
@@ -102,6 +93,11 @@ public class UserDetailsImpl implements UserDetails, CredentialsContainer {
     @Override
     public void eraseCredentials() {
         this.password = null;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return !credentialsExpired;
     }
 
 }
