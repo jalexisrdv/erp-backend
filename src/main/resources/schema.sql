@@ -3,6 +3,8 @@ DROP TABLE IF EXISTS inventory CASCADE;
 DROP TABLE IF EXISTS item_categories CASCADE;
 DROP TABLE IF EXISTS user_roles CASCADE;
 DROP TABLE IF EXISTS role_permissions CASCADE;
+DROP TABLE IF EXISTS refresh_tokens CASCADE;
+DROP TABLE IF EXISTS app_modules CASCADE;
 DROP TABLE IF EXISTS permissions CASCADE;
 DROP TABLE IF EXISTS roles CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
@@ -11,6 +13,30 @@ DROP TABLE IF EXISTS report_assignments CASCADE;
 DROP TABLE IF EXISTS report_items CASCADE;
 DROP TABLE IF EXISTS report_sections CASCADE;
 DROP TABLE IF EXISTS report_templates CASCADE;
+
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    first_name VARCHAR(200) NOT NULL,
+    middle_name VARCHAR(200) NOT NULL,
+    last_name VARCHAR(200) NOT NULL,
+    second_last_name VARCHAR(200) NOT NULL,
+    phone_number VARCHAR(20) NOT NULL,
+    username VARCHAR(50) NOT NULL,
+    password VARCHAR(500) NULL,
+    enabled BOOLEAN NOT NULL DEFAULT TRUE,
+    credentials_expired BOOLEAN NOT NULL DEFAULT FALSE,
+
+    CONSTRAINT uq_users_username
+        UNIQUE (username)
+);
+
+CREATE TABLE roles (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(500) NOT NULL,
+
+    CONSTRAINT uq_roles_name
+        UNIQUE (name)
+);
 
 CREATE TABLE refresh_tokens (
     id SERIAL PRIMARY KEY,
@@ -24,31 +50,6 @@ CREATE TABLE refresh_tokens (
         FOREIGN KEY (user_id)
         REFERENCES users(id)
         ON DELETE CASCADE
-);
-
-CREATE TABLE users (
-    id SERIAL PRIMARY KEY,
-    first_name VARCHAR(200) NOT NULL,
-    middle_name VARCHAR(200) NOT NULL,
-    last_name VARCHAR(200) NOT NULL,
-    second_last_name VARCHAR(200) NOT NULL,
-    phone_number VARCHAR(20) NOT NULL,
-    username VARCHAR(50) NOT NULL,
-    password VARCHAR(500) NULL,
-    enabled BOOLEAN NOT NULL,
-    token VARCHAR(100) NULL,
-    token_expiration_date TIMESTAMP NULL,
-
-    CONSTRAINT uq_users_username
-        UNIQUE (password)
-);
-
-CREATE TABLE roles (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(500) NOT NULL,
-
-    CONSTRAINT uq_roles_name
-        UNIQUE (name)
 );
 
 CREATE TABLE app_modules (
@@ -181,7 +182,7 @@ CREATE TABLE inventory_movements (
 CREATE TABLE report_templates (
     id SERIAL PRIMARY KEY,
     name VARCHAR(1000) NOT NULL,
-    
+
     CONSTRAINT uq_report_templates_name
         UNIQUE (name)
 );
@@ -190,10 +191,10 @@ CREATE TABLE report_sections (
     id SERIAL PRIMARY KEY,
     template_id INT NOT NULL,
     name VARCHAR(1000) NOT NULL,
-    
+
     CONSTRAINT uq_report_sections_template_id_name
         UNIQUE (template_id, name),
-    
+
     CONSTRAINT fk_report_sections_report_templates
         FOREIGN KEY (template_id)
         REFERENCES report_templates (id)
@@ -204,10 +205,10 @@ CREATE TABLE report_items (
     id SERIAL PRIMARY KEY,
     section_id INT NOT NULL,
     label TEXT NOT NULL,
-    
+
     CONSTRAINT uq_report_items_section_id_label
         UNIQUE (section_id, label),
-    
+
     CONSTRAINT fk_report_items_report_sections
         FOREIGN KEY (section_id)
         REFERENCES report_sections (id)
@@ -226,15 +227,10 @@ CREATE TABLE report_assignments (
     time_out TIME NOT NULL,
     date DATE NOT NULL DEFAULT CURRENT_DATE,
     status VARCHAR(150) DEFAULT 'PENDIENTE',
-    
+
     CONSTRAINT fk_report_assignments_report_templates
         FOREIGN KEY (template_id)
         REFERENCES report_templates (id)
-        ON DELETE CASCADE,
-    
-    CONSTRAINT fk_report_assignments_users
-        FOREIGN KEY (user_id)
-        REFERENCES users (id)
         ON DELETE CASCADE,
 
     CONSTRAINT fk_report_assignments_users_operator_user_id
