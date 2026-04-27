@@ -2,6 +2,7 @@ package com.erp.report.service.assignment;
 
 import com.erp.report.entity.assignment.AssignmentEntity;
 import com.erp.report.entity.assignment.ResponseEntity;
+import com.erp.report.entity.template.SectionEntity;
 import com.erp.report.entity.template.TemplateEntity;
 import com.erp.report.exception.assignment.AssigmentDoesNotExistException;
 import com.erp.report.exception.assignment.IncompleteTemplateException;
@@ -15,6 +16,7 @@ import com.erp.shared.domain.PaginationRules;
 import com.erp.shared.dto.pagination.PaginationRequestDTO;
 import com.erp.shared.dto.pagination.ResponsePaginationDTO;
 import com.erp.user.entity.UserEntity;
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import org.slf4j.Logger;
@@ -28,6 +30,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class AssigmentCrud {
@@ -37,28 +40,33 @@ public class AssigmentCrud {
     private final AssigmentRepository assignmentRepository;
     private final TemplateRepository templateRepository;
     private final ResponseRepository responseRepository;
+    private final EntityManager entityManager;
 
-    public AssigmentCrud(AssigmentRepository assignmentRepository, TemplateRepository templateRepository, ResponseRepository responseRepository) {
+    public AssigmentCrud(AssigmentRepository assignmentRepository, TemplateRepository templateRepository, ResponseRepository responseRepository, EntityManager entityManager) {
         this.assignmentRepository = assignmentRepository;
         this.templateRepository = templateRepository;
         this.responseRepository = responseRepository;
+        this.entityManager = entityManager;
     }
 
     @Transactional
     public AssignmentEntity create(AssignmentEntity entity) {
         try {
-            TemplateEntity templateEntity = templateRepository.findWithSectionsAndItemsById(entity.getTemplate().getId()).orElseThrow(() -> new TemplateDoesNotExistException(DomainErrorType.DEPENDENCY));
+            TemplateEntity templateEntity = templateRepository.findWithSectionsAndItemsById(entity.getTemplate().getId())
+                    .orElseThrow(() -> new TemplateDoesNotExistException(DomainErrorType.DEPENDENCY));
 
             AssignmentEntity assignment = assignmentRepository.save(entity);
 
-            List<ResponseEntity> responses = templateEntity.getSections().stream()
-                    .flatMap(section -> {
-                        if (section.getItems().isEmpty()) {
-                            throw new IncompleteTemplateException(DomainErrorType.DEPENDENCY);
-                        }
+            Set<SectionEntity> sections = templateEntity.getSections();
 
-                        return section.getItems().stream();
-                    })
+            boolean hasEmptySections = sections.isEmpty() || sections.stream().anyMatch(s -> s.getItems().isEmpty());
+
+            if(hasEmptySections) {
+                throw new IncompleteTemplateException(DomainErrorType.DEPENDENCY);
+            }
+
+            List<ResponseEntity> responses = sections.stream()
+                    .flatMap(section -> section.getItems().stream())
                     .map(item -> ResponseEntity.create(
                             null,
                             assignment.getId(),
@@ -70,7 +78,11 @@ public class AssigmentCrud {
 
             responseRepository.saveAll(responses);
 
-            return assignment;
+            entityManager.flush();
+            entityManager.clear();
+
+            return assignmentRepository.findWithTemplateAndOperatorAndMechanicById(assignment.getId())
+                    .orElseThrow(() -> new AssigmentDoesNotExistException());
         } catch (DomainError e) {
             LOG.info(e.getMessage(), e);
             throw e;

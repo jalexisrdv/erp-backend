@@ -26,7 +26,7 @@ public final class AssignmentController {
     }
 
     @GetMapping(value = "/preview")
-    public ResponseEntity<ResponseWrapper<ReportDTO>> create(@RequestParam(value = "id") Long id) {
+    public ResponseEntity<ResponseWrapper<ReportDTO>> preview(@RequestParam(value = "id") Long id) {
         return ResponseWrapper.ok(reportMapper.fromEntity(crud.findWithTemplateAndResponsesById(id)));
     }
 
