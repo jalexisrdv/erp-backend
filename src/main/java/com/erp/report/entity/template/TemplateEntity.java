@@ -3,7 +3,6 @@ package com.erp.report.entity.template;
 import jakarta.persistence.*;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -17,7 +16,8 @@ public final class TemplateEntity {
     @Column(name = "name")
     private String name;
 
-    @OneToMany(mappedBy = "template", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "template", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("position ASC")
     private Set<SectionEntity> sections = new HashSet<>();
 
     public static TemplateEntity create(Long id, String name) {
@@ -29,8 +29,25 @@ public final class TemplateEntity {
         return entity;
     }
 
+    public static TemplateEntity create(Long id, Set<SectionEntity> sections) {
+        TemplateEntity entity = new TemplateEntity();
+        entity.id = id;
+        entity.sections = sections;
+
+        entity.sections.forEach(section -> {
+            section.setTemplate(entity);
+        });
+
+        return entity;
+    }
+
     public void update(String name) {
         this.setName(name);
+    }
+
+    public void updateStructure(Set<SectionEntity> sections) {
+        this.sections.clear();
+        this.sections.addAll(sections);
     }
 
     public Long getId() {

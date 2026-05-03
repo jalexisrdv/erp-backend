@@ -1,9 +1,11 @@
 package com.erp.report.service.template;
 
-import com.erp.report.entity.template.ItemEntity;
+import com.erp.report.entity.template.SectionEntity;
 import com.erp.report.entity.template.TemplateEntity;
 import com.erp.report.exception.template.TemplateAlreadyExistsException;
 import com.erp.report.exception.template.TemplateDoesNotExistException;
+import com.erp.report.exception.template.InvalidTemplateStructureException;
+import com.erp.report.exception.template.section.EmptySectionsException;
 import com.erp.report.repository.template.TemplateRepository;
 import com.erp.shared.domain.DomainError;
 import com.erp.shared.domain.PaginationRules;
@@ -18,7 +20,11 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public final class TemplateCrud {
@@ -118,4 +124,58 @@ public final class TemplateCrud {
             throw e;
         }
     }
+
+    public TemplateEntity updateStructure(TemplateEntity templateEntity) {
+        try {
+            TemplateEntity templateEntityFound = repository.findById(templateEntity.getId()).orElseThrow(() -> new TemplateDoesNotExistException());
+
+            Set<SectionEntity> sectionEntities = templateEntity.getSections();
+
+            if(sectionEntities.isEmpty()) {
+                throw new EmptySectionsException();
+            }
+
+            Map<String, Integer> duplicateSections = new HashMap<>();
+            Map<String, Map<String, Integer>> duplicateItems = new HashMap<>();
+
+            sectionEntities.stream().forEach(section -> {
+                String sectionName = section.getName().toUpperCase();
+
+                duplicateSections.merge(sectionName, 1, Integer::sum);
+
+                Map<String, Integer> duplicates = section.getItems().stream()
+                        .collect(Collectors.toMap(
+                                item -> item.getLabel().toUpperCase(),
+                                item -> 1,
+                                Integer::sum
+                        ));
+
+                duplicateItems.put(sectionName, duplicates);
+            });
+
+            duplicateSections.entrySet().removeIf(entry -> entry.getValue() <= 1);
+
+            duplicateItems.values().forEach(itemMap ->
+                    itemMap.entrySet().removeIf(entry -> entry.getValue() <= 1)
+            );
+
+            boolean hasDuplicates = !duplicateSections.isEmpty() ||
+                    duplicateItems.values().stream().anyMatch(items -> !items.isEmpty());
+
+            if(hasDuplicates) {
+                throw new InvalidTemplateStructureException(duplicateSections, duplicateItems);
+            }
+
+            templateEntityFound.updateStructure(sectionEntities);
+
+            return repository.save(templateEntityFound);
+        } catch(DomainError e) {
+            LOG.info(e.getMessage(), e);
+            throw e;
+        } catch(Exception e) {
+            LOG.error(e.getMessage(), e);
+            throw e;
+        }
+    }
+
 }

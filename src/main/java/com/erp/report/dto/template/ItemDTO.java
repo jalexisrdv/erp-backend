@@ -2,7 +2,9 @@ package com.erp.report.dto.template;
 
 public record ItemDTO(
         Long id,
-        Long sectionId,
-        String label
+        String uuid,
+        String sectionUuid,
+        String label,
+        Integer position
 ) {
 }
