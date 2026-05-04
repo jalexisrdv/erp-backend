@@ -8,9 +8,11 @@ import com.erp.report.entity.assignment.AssignmentEntity;
 import com.erp.report.entity.template.SectionEntity;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 
-public final class ReportPreviewMapper {
+public final class ReportResponseMapper {
 
     public ReportDTO fromEntity(AssignmentEntity assignment) {
         HashMap<String, SectionDTO> sections = new HashMap<>();
@@ -23,7 +25,8 @@ public final class ReportPreviewMapper {
                     key -> new SectionDTO(
                             sectionEntity.getId(),
                             sectionEntity.getName(),
-                            new ArrayList<>()
+                            new ArrayList<>(),
+                            sectionEntity.getPosition()
                     )
             );
 
@@ -31,7 +34,8 @@ public final class ReportPreviewMapper {
                     responseEntity.getId(),
                     responseEntity.getItem().getLabel(),
                     responseEntity.getStatus(),
-                    responseEntity.getComment()
+                    responseEntity.getComment(),
+                    responseEntity.getItem().getPosition()
             );
 
             section.responses().add(response);
@@ -49,10 +53,21 @@ public final class ReportPreviewMapper {
                 assignment.getDate().toString()
         );
 
+        List<SectionDTO> sortedSections = sections.values().stream()
+                .sorted(Comparator.comparingInt(SectionDTO::position))
+                .map(section -> new SectionDTO(
+                        section.id(),
+                        section.name(),
+                        section.responses().stream()
+                                .sorted(Comparator.comparingInt(ResponseDTO::position))
+                                .toList(),
+                        section.position()
+                ))
+                .toList();
+
         return new ReportDTO(
                 header,
-                new ArrayList<>(sections.values())
+                new ArrayList<>(sortedSections)
         );
     }
-
 }

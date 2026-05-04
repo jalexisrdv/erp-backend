@@ -22,13 +22,14 @@ public final class ResponseEntity {
     @JoinColumn(name = "item_id")
     private ItemEntity item;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status")
-    private String status;
+    private ResponseStatusEnum status;
 
     @Column(name = "comment")
     private String comment;
 
-    public static ResponseEntity create(Long id, Long assignmentId, Long itemId, String status, String comment) {
+    public static ResponseEntity create(Long id, Long assignmentId, Long itemId, ResponseStatusEnum status, String comment) {
         AssignmentEntity assignmentEntity = new AssignmentEntity();
         assignmentEntity.setId(assignmentId);
 
@@ -46,7 +47,7 @@ public final class ResponseEntity {
         return entity;
     }
 
-    public static ResponseEntity create(Long id, String status, String comment) {
+    public static ResponseEntity create(Long id, ResponseStatusEnum status, String comment) {
         ResponseEntity entity = new ResponseEntity();
 
         entity.id = id;
@@ -56,7 +57,7 @@ public final class ResponseEntity {
         return entity;
     }
 
-    public void update(String status, String comment) {
+    public void update(ResponseStatusEnum status, String comment) {
         if(isCommentRequired(status, comment)) {
             throw new CommentRequiredException();
         }
@@ -65,8 +66,12 @@ public final class ResponseEntity {
         this.comment = comment;
     }
 
-    private static boolean isCommentRequired(String status, String comment) {
-        return !status.equalsIgnoreCase(ResponseStatusEnum.OK.name()) && (comment == null || comment.trim().isEmpty());
+    public boolean isAnswered() {
+        return status != null;
+    }
+
+    private static boolean isCommentRequired(ResponseStatusEnum status, String comment) {
+        return status != null && !status.equals(ResponseStatusEnum.OK) && (comment == null || comment.isBlank());
     }
 
     public AssignmentEntity assignment() {
@@ -101,11 +106,11 @@ public final class ResponseEntity {
         this.item = item;
     }
 
-    public String getStatus() {
+    public ResponseStatusEnum getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(ResponseStatusEnum status) {
         this.status = status;
     }
 

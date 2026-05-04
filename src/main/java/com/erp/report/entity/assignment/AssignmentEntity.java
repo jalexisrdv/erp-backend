@@ -1,5 +1,6 @@
 package com.erp.report.entity.assignment;
 
+import com.erp.report.domain.AssignmentStatusEnum;
 import com.erp.report.entity.template.TemplateEntity;
 import com.erp.user.entity.UserEntity;
 import jakarta.persistence.*;
@@ -48,10 +49,11 @@ public final class AssignmentEntity {
     @Column(name = "date")
     private LocalDate date;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status")
-    private String status = "PENDIENTE";
+    private AssignmentStatusEnum status = AssignmentStatusEnum.PENDIENTE;
 
-    @OneToMany(mappedBy = "assignment", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "assignment", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Set<ResponseEntity> responses = new HashSet<>();
 
     public static AssignmentEntity create(Long id, Long templateId, Integer unitNumber, Long operatorUserId, Long mechanicUserId, String mileage, String nextService, String timeIn, String timeOut) {
@@ -76,7 +78,18 @@ public final class AssignmentEntity {
         entity.timeIn = OffsetDateTime.parse(timeIn).toLocalTime();
         entity.timeOut = OffsetDateTime.parse(timeOut).toLocalTime();
         entity.date = LocalDate.now();
-        entity.status = "PENDIENTE";
+        entity.status = AssignmentStatusEnum.PENDIENTE;
+
+        return entity;
+    }
+
+    public static AssignmentEntity create(Long id, Set<ResponseEntity> responses) {
+        AssignmentEntity entity = new AssignmentEntity();
+
+        entity.id = id;
+        entity.responses = responses;
+
+        entity.responses.forEach(response -> response.setAssignment(entity));
 
         return entity;
     }
@@ -95,6 +108,12 @@ public final class AssignmentEntity {
         this.nextService = nextService;
         this.timeIn = timeIn;
         this.timeOut = timeOut;
+    }
+
+    public void updateStatus() {
+        boolean allResponsesAnswered = responses.stream().allMatch(ResponseEntity::isAnswered);
+
+        this.status = allResponsesAnswered ? AssignmentStatusEnum.COMPLETADO : AssignmentStatusEnum.PENDIENTE;
     }
 
     public Long getId() {
@@ -177,11 +196,11 @@ public final class AssignmentEntity {
         this.date = date;
     }
 
-    public String getStatus() {
+    public AssignmentStatusEnum getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(AssignmentStatusEnum status) {
         this.status = status;
     }
 

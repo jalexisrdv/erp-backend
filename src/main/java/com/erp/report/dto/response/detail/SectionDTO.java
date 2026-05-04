@@ -5,6 +5,7 @@ import java.util.List;
 public record SectionDTO(
         Long id,
         String name,
-        List<ResponseDTO> responses
+        List<ResponseDTO> responses,
+        Integer position
 ) {
 }

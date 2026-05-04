@@ -3,11 +3,22 @@ package com.erp.report.mapper.assignment;
 import com.erp.report.dto.assignment.AssignmentDTO;
 import com.erp.report.dto.assignment.MechanicDTO;
 import com.erp.report.dto.assignment.OperatorDTO;
+import com.erp.report.dto.response.AssignmentStatusDTO;
+import com.erp.report.dto.response.ResponseRequestDTO;
 import com.erp.report.dto.template.TemplateDTO;
 import com.erp.report.entity.assignment.AssignmentEntity;
 import com.erp.shared.mapper.AbstractMapper;
 
+import java.util.List;
+
 public final class AssignmentMapper extends AbstractMapper<AssignmentDTO, AssignmentEntity> {
+
+    private final ResponseMapper responseMapper;
+
+    public AssignmentMapper() {
+        responseMapper = new ResponseMapper();
+    }
+
     @Override
     public AssignmentEntity fromDTO(AssignmentDTO dto) {
         return AssignmentEntity.create(
@@ -48,4 +59,19 @@ public final class AssignmentMapper extends AbstractMapper<AssignmentDTO, Assign
                 entity.getStatus()
         );
     }
+
+    public AssignmentEntity toEntity(Long assignmentId, List<ResponseRequestDTO> dtos) {
+        return AssignmentEntity.create(
+                assignmentId,
+                responseMapper.fromDTO(dtos)
+        );
+    }
+
+    public AssignmentStatusDTO toDTO(AssignmentEntity entity) {
+        return new AssignmentStatusDTO(
+                entity.getId(),
+                entity.getStatus()
+        );
+    }
+
 }

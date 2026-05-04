@@ -1,14 +1,13 @@
 package com.erp.report.mapper.assignment;
 
 import com.erp.report.dto.response.ResponseRequestDTO;
-import com.erp.report.dto.response.ResponsesSavedDTO;
 import com.erp.report.entity.assignment.ResponseEntity;
-import com.erp.shared.mapper.AbstractMapper;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-public final class ResponseMapper extends AbstractMapper<ResponseRequestDTO, ResponseEntity> {
-    @Override
+public final class ResponseMapper {
     public ResponseEntity fromDTO(ResponseRequestDTO dto) {
         return ResponseEntity.create(
                 dto.id(),
@@ -17,7 +16,6 @@ public final class ResponseMapper extends AbstractMapper<ResponseRequestDTO, Res
         );
     }
 
-    @Override
     public ResponseRequestDTO fromEntity(ResponseEntity entity) {
         return new ResponseRequestDTO(
                 entity.getId(),
@@ -26,11 +24,9 @@ public final class ResponseMapper extends AbstractMapper<ResponseRequestDTO, Res
         );
     }
 
-    public ResponsesSavedDTO fromEntities(List<ResponseEntity> entities) {
-        return new ResponsesSavedDTO(
-                "Todas las respuestas se guardaron correctamente.",
-                entities.size(),
-                entities.get(0).getAssignment().getId()
-        );
+    public Set<ResponseEntity> fromDTO(List<ResponseRequestDTO> dtos) {
+        return dtos.stream()
+                .map(dto -> fromDTO(dto))
+                .collect(Collectors.toSet());
     }
 }

@@ -1,5 +1,6 @@
 package com.erp.report.dto.assignment;
 
+import com.erp.report.domain.AssignmentStatusEnum;
 import com.erp.report.dto.template.TemplateDTO;
 
 public record AssignmentDTO(
@@ -13,6 +14,6 @@ public record AssignmentDTO(
         String timeIn,
         String timeOut,
         String date,
-        String status
+        AssignmentStatusEnum status
 ) {
 }

@@ -1,8 +1,10 @@
 package com.erp.report.dto.response;
 
+import com.erp.report.domain.ResponseStatusEnum;
+
 public record ResponseRequestDTO(
         Long id,
-        String status,
+        ResponseStatusEnum status,
         String comment
 ) {
 }

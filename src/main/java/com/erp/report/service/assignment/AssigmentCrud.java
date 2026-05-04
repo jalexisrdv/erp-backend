@@ -30,7 +30,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class AssigmentCrud {
@@ -160,6 +162,32 @@ public class AssigmentCrud {
     public void deleteById(Long id) {
         try {
             assignmentRepository.deleteById(id);
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
+            throw e;
+        }
+    }
+
+    public AssignmentEntity updateResponses(AssignmentEntity assignmentEntity) {
+        try {
+            AssignmentEntity assignmentEntityFound = assignmentRepository.findWithTemplateAndResponsesById(assignmentEntity.getId())
+                    .orElseThrow(() -> new AssigmentDoesNotExistException());
+
+            Map<Long, ResponseEntity> responseEntitiesFound = assignmentEntityFound.getResponses()
+                    .stream().collect(Collectors.toMap(ResponseEntity::getId, responseEntity -> responseEntity));
+
+            assignmentEntity.getResponses().forEach(entity -> {
+                ResponseEntity responseEntityFound = responseEntitiesFound.get(entity.getId());
+
+                responseEntityFound.update(entity.getStatus(), entity.getComment());
+            });
+
+            assignmentEntityFound.updateStatus();
+
+            return assignmentRepository.save(assignmentEntityFound);
+        } catch (DomainError e) {
+            LOG.info(e.getMessage(), e);
+            throw e;
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
             throw e;
