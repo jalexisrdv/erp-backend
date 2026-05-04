@@ -189,8 +189,13 @@ CREATE TABLE report_templates (
 
 CREATE TABLE report_sections (
     id SERIAL PRIMARY KEY,
+    uuid UUID DEFAULT gen_random_uuid() NOT NULL,
     template_id INT NOT NULL,
     name VARCHAR(1000) NOT NULL,
+    position INT NOT NULL,
+
+    CONSTRAINT uq_report_sections_uuid
+        UNIQUE (uuid),
 
     CONSTRAINT uq_report_sections_template_id_name
         UNIQUE (template_id, name),
@@ -203,8 +208,13 @@ CREATE TABLE report_sections (
 
 CREATE TABLE report_items (
     id SERIAL PRIMARY KEY,
+    uuid UUID DEFAULT gen_random_uuid() NOT NULL,
     section_id INT NOT NULL,
     label TEXT NOT NULL,
+    position INT NOT NULL,
+
+    CONSTRAINT uq_report_items_uuid
+            UNIQUE (uuid),
 
     CONSTRAINT uq_report_items_section_id_label
         UNIQUE (section_id, label),
@@ -253,9 +263,11 @@ CREATE TABLE report_responses (
     
     CONSTRAINT ck_report_responses_comment_when_not_ok
         CHECK (
-            (status IN ('F', 'R') AND comment IS NOT NULL)
+            (status IS NULL)
             OR
             (status = 'OK')
+            OR
+            (status IN ('F', 'R') AND comment IS NOT NULL)
         ),
     
     CONSTRAINT fk_report_responses_report_assignments
