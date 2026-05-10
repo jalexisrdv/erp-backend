@@ -1,6 +1,7 @@
 package com.erp.report.entity.assignment;
 
 import com.erp.report.domain.AssignmentStatusEnum;
+import com.erp.report.entity.template.SectionEntity;
 import com.erp.report.entity.template.TemplateEntity;
 import com.erp.user.entity.UserEntity;
 import jakarta.persistence.*;
@@ -9,7 +10,9 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "report_assignments")
@@ -114,6 +117,15 @@ public final class AssignmentEntity {
         boolean allResponsesAnswered = responses.stream().allMatch(ResponseEntity::isAnswered);
 
         this.status = allResponsesAnswered ? AssignmentStatusEnum.COMPLETADO : AssignmentStatusEnum.PENDIENTE;
+    }
+
+    public void createDefaultResponsesFrom(Set<SectionEntity> sections) {
+        Set<ResponseEntity> responses = sections.stream()
+                .flatMap(section -> section.getItems().stream())
+                .map(item -> ResponseEntity.createDefaultResponse(this, item.getId()))
+                .collect(Collectors.toSet());
+
+        this.responses = responses;
     }
 
     public Long getId() {

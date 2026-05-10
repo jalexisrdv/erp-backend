@@ -8,7 +8,6 @@ import com.erp.report.exception.assignment.AssigmentDoesNotExistException;
 import com.erp.report.exception.assignment.IncompleteTemplateException;
 import com.erp.report.exception.template.TemplateDoesNotExistException;
 import com.erp.report.repository.assignment.AssigmentRepository;
-import com.erp.report.repository.assignment.ResponseRepository;
 import com.erp.report.repository.template.TemplateRepository;
 import com.erp.shared.domain.DomainError;
 import com.erp.shared.domain.DomainErrorType;
@@ -29,7 +28,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -41,13 +39,11 @@ public class AssigmentCrud {
 
     private final AssigmentRepository assignmentRepository;
     private final TemplateRepository templateRepository;
-    private final ResponseRepository responseRepository;
     private final EntityManager entityManager;
 
-    public AssigmentCrud(AssigmentRepository assignmentRepository, TemplateRepository templateRepository, ResponseRepository responseRepository, EntityManager entityManager) {
+    public AssigmentCrud(AssigmentRepository assignmentRepository, TemplateRepository templateRepository, EntityManager entityManager) {
         this.assignmentRepository = assignmentRepository;
         this.templateRepository = templateRepository;
-        this.responseRepository = responseRepository;
         this.entityManager = entityManager;
     }
 
@@ -57,8 +53,6 @@ public class AssigmentCrud {
             TemplateEntity templateEntity = templateRepository.findWithSectionsAndItemsById(entity.getTemplate().getId())
                     .orElseThrow(() -> new TemplateDoesNotExistException(DomainErrorType.DEPENDENCY));
 
-            AssignmentEntity assignment = assignmentRepository.save(entity);
-
             Set<SectionEntity> sections = templateEntity.getSections();
 
             boolean hasEmptySections = sections.isEmpty() || sections.stream().anyMatch(s -> s.getItems().isEmpty());
@@ -67,21 +61,12 @@ public class AssigmentCrud {
                 throw new IncompleteTemplateException(DomainErrorType.DEPENDENCY);
             }
 
-            List<ResponseEntity> responses = sections.stream()
-                    .flatMap(section -> section.getItems().stream())
-                    .map(item -> ResponseEntity.create(
-                            null,
-                            assignment.getId(),
-                            item.getId(),
-                            null,
-                            null
-                    ))
-                    .toList();
+            entity.createDefaultResponsesFrom(sections);
 
-            responseRepository.saveAll(responses);
+            AssignmentEntity assignment = assignmentRepository.save(entity);
 
             entityManager.flush();
-            entityManager.clear();
+            entityManager.detach(assignment);
 
             return assignmentRepository.findWithTemplateAndOperatorAndMechanicById(assignment.getId())
                     .orElseThrow(() -> new AssigmentDoesNotExistException());

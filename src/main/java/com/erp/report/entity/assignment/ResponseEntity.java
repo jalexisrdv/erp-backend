@@ -29,6 +29,18 @@ public final class ResponseEntity {
     @Column(name = "comment")
     private String comment;
 
+    public static ResponseEntity createDefaultResponse(AssignmentEntity assignment, Long itemId) {
+        ItemEntity item = new ItemEntity();
+        item.setId(itemId);
+
+        ResponseEntity entity = new ResponseEntity();
+
+        entity.assignment = assignment;
+        entity.item = item;
+
+        return entity;
+    }
+
     public static ResponseEntity create(Long id, Long assignmentId, Long itemId, ResponseStatusEnum status, String comment) {
         AssignmentEntity assignmentEntity = new AssignmentEntity();
         assignmentEntity.setId(assignmentId);
