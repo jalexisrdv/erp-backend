@@ -1,10 +1,15 @@
 package com.erp.inventory.mapper;
 
+import com.erp.inventory.dto.ApproveMovementRequestDTO;
+import com.erp.inventory.dto.InvoicePreviewDTO;
 import com.erp.inventory.dto.MovementDTO;
+import com.erp.inventory.dto.RejectMovementRequestDTO;
 import com.erp.inventory.entity.MovementEntity;
-import com.erp.shared.mapper.AbstractMapper;
+import com.erp.shared.dto.pagination.ResponsePaginationDTO;
 
-public final class MovementMapper extends AbstractMapper<MovementDTO, MovementEntity> {
+import java.util.List;
+
+public final class MovementMapper {
 
     private final InventoryMapper inventoryMapper;
 
@@ -12,20 +17,24 @@ public final class MovementMapper extends AbstractMapper<MovementDTO, MovementEn
         this.inventoryMapper = new InventoryMapper();
     }
 
-    @Override
-    public MovementEntity fromDTO(MovementDTO dto) {
-        return MovementEntity.fromPrimitives(
+    public MovementEntity toEntity(ApproveMovementRequestDTO dto, Long userId) {
+        return MovementEntity.createApproved(
                 dto.id(),
-                dto.item().id(),
-                dto.invoiceUrl(),
-                dto.quantity(),
-                dto.outputReason(),
-                dto.rejectReason()
+                dto.itemId(),
+                userId
         );
     }
 
-    @Override
-    public MovementDTO fromEntity(MovementEntity entity) {
+    public MovementEntity toEntity(RejectMovementRequestDTO dto, Long userId) {
+        return MovementEntity.createRejected(
+                dto.id(),
+                dto.itemId(),
+                dto.reason(),
+                userId
+        );
+    }
+
+    public MovementDTO toDTO(MovementEntity entity) {
         return new MovementDTO(
                 entity.getId(),
                 inventoryMapper.fromEntity(entity.getItem()),
@@ -43,4 +52,21 @@ public final class MovementMapper extends AbstractMapper<MovementDTO, MovementEn
                 entity.getReviewedAt()
         );
     }
+
+    public ResponsePaginationDTO<MovementDTO> fromPagination(ResponsePaginationDTO<MovementEntity> pagination) {
+        List<MovementDTO> data = pagination.data().stream().map((entity) -> toDTO(entity)).toList();
+
+        return ResponsePaginationDTO.create(
+                pagination.page().number(),
+                pagination.page().size(),
+                pagination.page().pages(),
+                pagination.page().items(),
+                data
+        );
+    }
+
+    public InvoicePreviewDTO toDTO(String url) {
+        return new InvoicePreviewDTO(url);
+    }
+
 }

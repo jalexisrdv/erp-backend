@@ -1,7 +1,7 @@
 package com.erp.inventory.service.movement;
 
-import com.erp.authentication.service.AuthenticatedUserProvider;
-import com.erp.inventory.entity.InventoryEntity;
+import com.erp.filestorage.service.S3FileStorage;
+import com.erp.inventory.dto.EntryMovementRequestDTO;
 import com.erp.inventory.entity.MovementEntity;
 import com.erp.inventory.exception.inventory.ItemDoesNotExistException;
 import com.erp.inventory.exception.movement.MovementDoesNotExistException;
@@ -9,40 +9,56 @@ import com.erp.inventory.repository.InventoryMovementRepository;
 import com.erp.inventory.repository.InventoryRepository;
 import com.erp.shared.domain.DomainError;
 import com.erp.shared.domain.DomainErrorType;
-import com.erp.user.entity.UserEntity;
+import jakarta.persistence.EntityManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Transactional(rollbackFor = Exception.class)
 @Service
+@Transactional
 public class EntryMovementService {
 
     private final static Logger LOG = LoggerFactory.getLogger(EntryMovementService.class);
 
     private final InventoryRepository inventoryRepository;
     private final InventoryMovementRepository movementRepository;
-    private final AuthenticatedUserProvider userProvider;
+    private final EntityManager entityManager;
+    private final S3FileStorage fileStorage;
 
-    public EntryMovementService(InventoryRepository inventoryRepository, InventoryMovementRepository movementRepository, AuthenticatedUserProvider userProvider) {
+    public EntryMovementService(InventoryRepository inventoryRepository, InventoryMovementRepository movementRepository, EntityManager entityManager, S3FileStorage fileStorage) {
         this.inventoryRepository = inventoryRepository;
         this.movementRepository = movementRepository;
-        this.userProvider = userProvider;
+        this.entityManager = entityManager;
+        this.fileStorage = fileStorage;
     }
 
-    public MovementEntity create(MovementEntity entity) {
+    public MovementEntity create(EntryMovementRequestDTO dto, Long userId) {
         try {
-            InventoryEntity inventory = inventoryRepository.findById(entity.getItem().getId()).orElseThrow(() -> new ItemDoesNotExistException(DomainErrorType.DEPENDENCY));
+            String invoiceName = dto.invoiceName();
+            byte[] invoiceBytes = dto.invoiceBytes();
 
-            UserEntity user = UserEntity.from(userProvider.getUserId(), userProvider.getUsername());
-            MovementEntity entityCreated = entity.createEntry(user, inventory, entity.getQuantity(), entity.getInvoiceUrl());
-            entityCreated = movementRepository.save(entityCreated);
+            MovementEntity.ensureInvoicePdfFormat(invoiceName, invoiceBytes);
 
-            inventoryRepository.updatePendingEntryCount(entity.getItem().getId());
-            inventory.increasePendingEntryCount(entity.getQuantity());
+            inventoryRepository.findById(dto.itemId()).orElseThrow(() -> new ItemDoesNotExistException(DomainErrorType.DEPENDENCY));
 
-            return entityCreated;
+            String invoiceUrl = fileStorage.upload(
+                    invoiceBytes,
+                    invoiceName,
+                    MovementEntity.generateInvoicePath(dto.itemId())
+            );
+
+            MovementEntity entityCreated = MovementEntity.createEntry(dto.itemId(), dto.quantity(), invoiceUrl, userId);
+
+            MovementEntity entitySaved = movementRepository.save(entityCreated);
+
+            entityManager.flush();
+
+            inventoryRepository.increasePendingEntryCount(dto.itemId(), dto.quantity());
+
+            entityManager.clear();
+
+            return movementRepository.findById(entitySaved.getId()).orElseThrow(() -> new MovementDoesNotExistException());
         } catch(DomainError e) {
             LOG.info(e.getMessage(), e);
             throw e;
@@ -52,18 +68,32 @@ public class EntryMovementService {
         }
     }
 
-    public MovementEntity update(MovementEntity entity) {
+    public MovementEntity update(EntryMovementRequestDTO dto, Long userId) {
         try {
-            MovementEntity entityFound = movementRepository.findById(entity.getId()).orElseThrow(() -> new MovementDoesNotExistException());
+            String invoiceName = dto.invoiceName();
+            byte[] invoiceBytes = dto.invoiceBytes();
 
-            UserEntity user = UserEntity.from(userProvider.getUserId(), userProvider.getUsername());
-            entityFound.updateEntry(user, entity.getQuantity(), entity.getInvoiceUrl());
-            MovementEntity entitySaved = movementRepository.save(entityFound);
+            MovementEntity.ensureInvoicePdfFormat(invoiceName, invoiceBytes);
 
-            inventoryRepository.updatePendingEntryCount(entity.getItem().getId());
-            entityFound.getItem().increasePendingEntryCount(entity.getQuantity());
+            MovementEntity entityFound = movementRepository.findById(dto.id()).orElseThrow(() -> new MovementDoesNotExistException());
 
-            return entitySaved;
+            String invoiceUrl = fileStorage.upload(
+                    invoiceBytes,
+                    invoiceName,
+                    MovementEntity.generateInvoicePath(dto.itemId())
+            );
+
+            entityFound.updateEntry(dto.quantity(), invoiceUrl, userId);
+
+            movementRepository.save(entityFound);
+
+            entityManager.flush();
+
+            inventoryRepository.increasePendingEntryCount(dto.itemId(), dto.quantity());
+
+            entityManager.clear();
+
+            return movementRepository.findById(entityFound.getId()).orElseThrow(() -> new MovementDoesNotExistException());
         } catch(DomainError e) {
             LOG.info(e.getMessage(), e);
             throw e;
@@ -77,14 +107,18 @@ public class EntryMovementService {
         try {
             MovementEntity entityFound = movementRepository.findById(entity.getId()).orElseThrow(() -> new MovementDoesNotExistException());
 
-            UserEntity user = UserEntity.from(userProvider.getUserId(), userProvider.getUsername());
-            entityFound.approveEntry(user);
-            MovementEntity entitySaved = movementRepository.save(entityFound);
+            entityFound.approveEntry(entity.getReviewedBy().getId());
 
-            inventoryRepository.updateEntryCount(entityFound.getItem().getId());
-            inventoryRepository.updatePendingEntryCount(entityFound.getItem().getId());
+            movementRepository.save(entityFound);
 
-            return entitySaved;
+            entityManager.flush();
+
+            inventoryRepository.increaseEntryCount(entity.getItem().getId(), entityFound.getQuantity());
+            inventoryRepository.decreasePendingEntryCount(entity.getItem().getId(), entityFound.getQuantity());
+
+            entityManager.clear();
+
+            return movementRepository.findById(entity.getId()).orElseThrow(() -> new MovementDoesNotExistException());
         } catch(DomainError e) {
             LOG.info(e.getMessage(), e);
             throw e;
@@ -98,13 +132,31 @@ public class EntryMovementService {
         try {
             MovementEntity entityFound = movementRepository.findById(entity.getId()).orElseThrow(() -> new MovementDoesNotExistException());
 
-            UserEntity user = UserEntity.from(userProvider.getUserId(), userProvider.getUsername());
-            entityFound.reject(user, entity.getRejectReason());
-            MovementEntity entitySaved = movementRepository.save(entityFound);
+            entityFound.reject(entity.getReviewedBy().getId(), entity.getRejectReason());
 
-            inventoryRepository.updatePendingEntryCount(entityFound.getItem().getId());
+            movementRepository.save(entityFound);
 
-            return entitySaved;
+            entityManager.flush();
+
+            inventoryRepository.decreasePendingEntryCount(entity.getItem().getId(), entityFound.getQuantity());
+
+            entityManager.clear();
+
+            return movementRepository.findById(entity.getId()).orElseThrow(() -> new MovementDoesNotExistException());
+        } catch(DomainError e) {
+            LOG.info(e.getMessage(), e);
+            throw e;
+        } catch(Exception e) {
+            LOG.error(e.getMessage(), e);
+            throw e;
+        }
+    }
+
+    public String previewInvoice(Long id) {
+        try {
+            MovementEntity entity = movementRepository.findById(id).orElseThrow(() -> new MovementDoesNotExistException());
+
+            return fileStorage.generateTemporaryUrl(entity.getInvoiceUrl());
         } catch(DomainError e) {
             LOG.info(e.getMessage(), e);
             throw e;

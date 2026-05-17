@@ -5,7 +5,6 @@ import com.erp.inventory.dto.MovementFilterDTO;
 import com.erp.inventory.entity.MovementEntity;
 import com.erp.inventory.repository.InventoryMovementRepository;
 import com.erp.shared.domain.PaginationRules;
-import com.erp.shared.domain.Roles;
 import com.erp.shared.dto.pagination.PaginatedSearchRequestDTO;
 import com.erp.shared.dto.pagination.ResponsePaginationDTO;
 import org.slf4j.Logger;
@@ -18,8 +17,8 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Transactional
 @Service
+@Transactional
 public class MovementSearcher {
 
     private final static Logger LOG = LoggerFactory.getLogger(MovementSearcher.class);

@@ -1,0 +1,9 @@
+package com.erp.inventory.dto;
+
+public record OutputMovementRequestDTO(
+        Long id,
+        Long itemId,
+        Long quantity,
+        String reason
+) {
+}

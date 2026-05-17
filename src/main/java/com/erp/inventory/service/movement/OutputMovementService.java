@@ -1,48 +1,56 @@
 package com.erp.inventory.service.movement;
 
-import com.erp.authentication.service.AuthenticatedUserProvider;
+import com.erp.inventory.dto.OutputMovementRequestDTO;
 import com.erp.inventory.entity.InventoryEntity;
 import com.erp.inventory.entity.MovementEntity;
+import com.erp.inventory.exception.inventory.InsufficientStockException;
 import com.erp.inventory.exception.inventory.ItemDoesNotExistException;
 import com.erp.inventory.exception.movement.MovementDoesNotExistException;
 import com.erp.inventory.repository.InventoryMovementRepository;
 import com.erp.inventory.repository.InventoryRepository;
 import com.erp.shared.domain.DomainError;
 import com.erp.shared.domain.DomainErrorType;
-import com.erp.user.entity.UserEntity;
+import jakarta.persistence.EntityManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Transactional(rollbackFor = Exception.class)
 @Service
+@Transactional
 public class OutputMovementService {
 
     private final static Logger LOG = LoggerFactory.getLogger(OutputMovementService.class);
 
     private final InventoryRepository inventoryRepository;
     private final InventoryMovementRepository movementRepository;
-    private final AuthenticatedUserProvider userProvider;
+    private final EntityManager entityManager;
 
-    public OutputMovementService(InventoryRepository inventoryRepository, InventoryMovementRepository movementRepository, AuthenticatedUserProvider userProvider) {
+    public OutputMovementService(InventoryRepository inventoryRepository, InventoryMovementRepository movementRepository, EntityManager entityManager) {
         this.inventoryRepository = inventoryRepository;
         this.movementRepository = movementRepository;
-        this.userProvider = userProvider;
+        this.entityManager = entityManager;
     }
 
-    public MovementEntity create(MovementEntity entity) {
+    public MovementEntity create(OutputMovementRequestDTO dto, Long userId) {
         try {
-            InventoryEntity inventory = inventoryRepository.findById(entity.getItem().getId()).orElseThrow(() -> new ItemDoesNotExistException(DomainErrorType.DEPENDENCY));
+            InventoryEntity inventoryEntity = inventoryRepository.findById(dto.itemId()).orElseThrow(() -> new ItemDoesNotExistException(DomainErrorType.DEPENDENCY));
 
-            UserEntity user = UserEntity.from(userProvider.getUserId(), userProvider.getUsername());
-            MovementEntity entityCreated = entity.createOutput(user, inventory, entity.getQuantity(), entity.getOutputReason());
-            entityCreated = movementRepository.save(entityCreated);
+            if(!inventoryEntity.hasStockFor(dto.quantity())) {
+                throw new InsufficientStockException();
+            }
 
-            inventoryRepository.updateReservedOutputCount(entity.getItem().getId());
-            inventory.increaseReserveOutputCount(entity.getQuantity());
+            MovementEntity entityCreated = MovementEntity.createOutput(dto.itemId(), dto.quantity(), dto.reason(), userId);
 
-            return entityCreated;
+            MovementEntity entitySaved = movementRepository.save(entityCreated);
+
+            entityManager.flush();
+
+            inventoryRepository.increaseReservedOutputCount(dto.itemId(), dto.quantity());
+
+            entityManager.clear();
+
+            return movementRepository.findById(entitySaved.getId()).orElseThrow(() -> new MovementDoesNotExistException());
         } catch(DomainError e) {
             LOG.info(e.getMessage(), e);
             throw e;
@@ -52,18 +60,21 @@ public class OutputMovementService {
         }
     }
 
-    public MovementEntity update(MovementEntity entity) {
+    public MovementEntity update(OutputMovementRequestDTO dto, Long userId) {
         try {
-            MovementEntity entityFound = movementRepository.findById(entity.getId()).orElseThrow(() -> new MovementDoesNotExistException());
+            MovementEntity entityFound = movementRepository.findById(dto.id()).orElseThrow(() -> new MovementDoesNotExistException());
 
-            UserEntity user = UserEntity.from(userProvider.getUserId(), userProvider.getUsername());
-            entityFound.updateOutput(user, entity.getQuantity(), entity.getOutputReason());
-            MovementEntity entitySaved = movementRepository.save(entityFound);
+            entityFound.updateOutput(dto.quantity(), dto.reason(), userId);
 
-            inventoryRepository.updateReservedOutputCount(entity.getItem().getId());
-            entityFound.getItem().increaseReserveOutputCount(entity.getQuantity());
+            movementRepository.save(entityFound);
 
-            return entitySaved;
+            entityManager.flush();
+
+            inventoryRepository.increaseReservedOutputCount(dto.itemId(), dto.quantity());
+
+            entityManager.clear();
+
+            return movementRepository.findById(dto.id()).orElseThrow(() -> new MovementDoesNotExistException());
         } catch(DomainError e) {
             LOG.info(e.getMessage(), e);
             throw e;
@@ -77,14 +88,18 @@ public class OutputMovementService {
         try {
             MovementEntity entityFound = movementRepository.findById(entity.getId()).orElseThrow(() -> new MovementDoesNotExistException());
 
-            UserEntity user = UserEntity.from(userProvider.getUserId(), userProvider.getUsername());
-            entityFound.approveOutput(user);
-            MovementEntity entitySaved = movementRepository.save(entityFound);
+            entityFound.approveOutput(entity.getReviewedBy().getId());
 
-            inventoryRepository.updateReservedOutputCount(entityFound.getItem().getId());
-            inventoryRepository.updateOutputCount(entityFound.getItem().getId());
+            movementRepository.save(entityFound);
 
-            return entitySaved;
+            entityManager.flush();
+
+            inventoryRepository.increaseOutputCount(entity.getItem().getId(), entityFound.getQuantity());
+            inventoryRepository.decreaseReservedOutputCount(entity.getItem().getId(), entityFound.getQuantity());
+
+            entityManager.clear();
+
+            return movementRepository.findById(entity.getId()).orElseThrow(() -> new MovementDoesNotExistException());
         } catch(DomainError e) {
             LOG.info(e.getMessage(), e);
             throw e;
@@ -98,13 +113,17 @@ public class OutputMovementService {
         try {
             MovementEntity entityFound = movementRepository.findById(entity.getId()).orElseThrow(() -> new MovementDoesNotExistException());
 
-            UserEntity user = UserEntity.from(userProvider.getUserId(), userProvider.getUsername());
-            entityFound.reject(user, entity.getRejectReason());
-            MovementEntity entitySaved = movementRepository.save(entityFound);
+            entityFound.reject(entity.getReviewedBy().getId(), entity.getRejectReason());
 
-            inventoryRepository.updateReservedOutputCount(entity.getItem().getId());
+            movementRepository.save(entityFound);
 
-            return entitySaved;
+            entityManager.flush();
+
+            inventoryRepository.decreaseReservedOutputCount(entity.getItem().getId(), entityFound.getQuantity());
+
+            entityManager.clear();
+
+            return movementRepository.findById(entity.getId()).orElseThrow(() -> new MovementDoesNotExistException());
         } catch(DomainError e) {
             LOG.info(e.getMessage(), e);
             throw e;

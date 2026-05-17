@@ -14,33 +14,49 @@ public interface InventoryRepository extends JpaRepository<InventoryEntity, Long
     @Modifying
     @Query("""
         UPDATE InventoryEntity item
-        SET item.pendingEntryCount = (SELECT COALESCE(SUM(movement.quantity), 0) FROM MovementEntity movement WHERE movement.item.id = :id AND movement.type = 'ENTRADA' AND movement.status = 'PENDIENTE')
+        SET item.entryCount = item.entryCount + :quantity
         WHERE item.id = :id
     """)
-    int updatePendingEntryCount(Long id);
+    int increaseEntryCount(Long id, Long quantity);
 
     @Modifying
     @Query("""
         UPDATE InventoryEntity item
-        SET item.entryCount = (SELECT COALESCE(SUM(movement.quantity), 0) FROM MovementEntity movement WHERE movement.item.id = :id AND movement.type = 'ENTRADA' AND movement.status <> 'PENDIENTE')
+        SET item.pendingEntryCount = item.pendingEntryCount + :quantity
         WHERE item.id = :id
     """)
-    int updateEntryCount(Long id);
+    int increasePendingEntryCount(Long id, Long quantity);
 
     @Modifying
     @Query("""
         UPDATE InventoryEntity item
-        SET item.outputCount = (SELECT COALESCE(SUM(movement.quantity), 0) FROM MovementEntity movement WHERE movement.item.id = :id AND movement.type = 'SALIDA' AND movement.status <> 'PENDIENTE')
+        SET item.pendingEntryCount = item.pendingEntryCount - :quantity
         WHERE item.id = :id
     """)
-    int updateOutputCount(Long id);
+    int decreasePendingEntryCount(Long id, Long quantity);
 
     @Modifying
     @Query("""
         UPDATE InventoryEntity item
-        SET item.reservedOutputCount = (SELECT COALESCE(SUM(movement.quantity), 0) FROM MovementEntity movement WHERE movement.item.id = :id AND movement.type = 'SALIDA' AND movement.status = 'PENDIENTE')
+        SET item.outputCount = item.outputCount + :quantity
         WHERE item.id = :id
     """)
-    int updateReservedOutputCount(Long id);
+    int increaseOutputCount(Long id, Long quantity);
+
+    @Modifying
+    @Query("""
+        UPDATE InventoryEntity item
+        SET item.reservedOutputCount = item.reservedOutputCount + :quantity
+        WHERE item.id = :id
+    """)
+    int increaseReservedOutputCount(Long id, Long quantity);
+
+    @Modifying
+    @Query("""
+        UPDATE InventoryEntity item
+        SET item.reservedOutputCount = item.reservedOutputCount - :quantity
+        WHERE item.id = :id
+    """)
+    int decreaseReservedOutputCount(Long id, Long quantity);
 
 }

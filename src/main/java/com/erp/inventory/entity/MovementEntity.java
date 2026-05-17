@@ -2,12 +2,14 @@ package com.erp.inventory.entity;
 
 import com.erp.inventory.domain.MovementEnum;
 import com.erp.inventory.domain.StatusEnum;
+import com.erp.inventory.exception.inventory.InsufficientReservedStockException;
 import com.erp.inventory.exception.inventory.InsufficientStockException;
 import com.erp.inventory.exception.movement.*;
 import com.erp.user.entity.UserEntity;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "inventory_movements")
@@ -62,41 +64,68 @@ public final class MovementEntity {
     @Column(name = "reviewed_at")
     private LocalDateTime reviewedAt;
 
-    public static MovementEntity fromPrimitives(Long id, Long inventoryId, String invoiceUrl, Long quantity, String outputReason, String rejectReason) {
-        InventoryEntity inventory = new InventoryEntity();
-        inventory.setId(inventoryId);
+    public static MovementEntity createEntry(Long itemId, Long quantity, String invoiceUrl, Long userId) {
+        if(quantity <= 0) {
+            throw new InvalidQuantityException();
+        }
+
+        if(invoiceUrl == null || invoiceUrl.isBlank()) {
+            throw new InvoiceRequiredException();
+        }
+
+        InventoryEntity item = new InventoryEntity();
+        item.setId(itemId);
+
+        UserEntity user = new UserEntity();
+        user.setId(userId);
 
         MovementEntity entity = new MovementEntity();
-        entity.id = id;
-        entity.item = inventory;
-        entity.invoiceUrl = invoiceUrl;
+
+        entity.item = item;
+        entity.type = MovementEnum.ENTRADA;
         entity.quantity = quantity;
-        entity.outputReason = outputReason;
-        entity.rejectReason = rejectReason;
+        entity.invoiceUrl = invoiceUrl;
+        entity.status = StatusEnum.PENDIENTE;
+        entity.createdBy = user;
+        entity.createdAt = LocalDateTime.now();
 
         return entity;
     }
 
-    public MovementEntity createEntry(UserEntity user, InventoryEntity item, Long quantity, String invoiceUrl) {
-        if(quantity <= 0) {
-            throw new InvalidQuantityException();
-        }
+    public static MovementEntity createApproved(Long id, Long itemId, Long userId) {
+        InventoryEntity item = new InventoryEntity();
+        item.setId(itemId);
 
-        if(invoiceUrl == null || invoiceUrl.isEmpty()) {
-            throw new InvoiceRequiredException();
-        }
+        UserEntity user = new UserEntity();
+        user.setId(userId);
 
-        this.item = item;
-        type = MovementEnum.ENTRADA;
-        this.quantity = quantity;
-        status = StatusEnum.PENDIENTE;
-        createdBy = user;
-        createdAt = LocalDateTime.now();
+        MovementEntity entity = new MovementEntity();
 
-        return this;
+        entity.id = id;
+        entity.item = item;
+        entity.reviewedBy = user;
+
+        return entity;
     }
 
-    public void updateEntry(UserEntity user, Long quantity, String invoiceUrl) {
+    public static MovementEntity createRejected(Long id, Long itemId, String reason, Long userId) {
+        InventoryEntity item = new InventoryEntity();
+        item.setId(itemId);
+
+        UserEntity user = new UserEntity();
+        user.setId(userId);
+
+        MovementEntity entity = new MovementEntity();
+
+        entity.id = id;
+        entity.item = item;
+        entity.reviewedBy = user;
+        entity.rejectReason = reason;
+
+        return entity;
+    }
+
+    public void updateEntry(Long quantity, String invoiceUrl, Long userId) {
         if(status != StatusEnum.PENDIENTE) {
             throw new StatusAlreadyReviewedException();
         }
@@ -109,22 +138,60 @@ public final class MovementEntity {
             throw new InvoiceRequiredException();
         }
 
+        UserEntity user = new UserEntity();
+        user.setId(userId);
+
         this.quantity = quantity;
         updatedBy = user;
         updatedAt = LocalDateTime.now();
     }
 
-    public void approveEntry(UserEntity user) {
+    public void approveEntry(Long userId) {
         if(status != StatusEnum.PENDIENTE) {
             throw new StatusAlreadyReviewedException();
         }
+
+        UserEntity user = new UserEntity();
+        user.setId(userId);
 
         status = StatusEnum.APROBADO;
         reviewedBy = user;
         reviewedAt = LocalDateTime.now();
     }
 
-    public MovementEntity createOutput(UserEntity user, InventoryEntity item, Long quantity, String reason) {
+    public static MovementEntity createOutput(Long itemId, Long quantity, String reason, Long userId) {
+        if(quantity <= 0) {
+            throw new InvalidQuantityException();
+        }
+
+        if(reason == null || reason.isEmpty()) {
+            throw new OutputReasonRequiredException();
+        }
+
+        InventoryEntity item = new InventoryEntity();
+        item.setId(itemId);
+
+        UserEntity user = new UserEntity();
+        user.setId(userId);
+
+        MovementEntity entity = new MovementEntity();
+
+        entity.item = item;
+        entity.type = MovementEnum.SALIDA;
+        entity.quantity = quantity;
+        entity.outputReason = reason;
+        entity.status = StatusEnum.PENDIENTE;
+        entity.createdBy = user;
+        entity.createdAt = LocalDateTime.now();
+
+        return entity;
+    }
+
+    public void updateOutput(Long quantity, String reason, Long userId) {
+        if(status != StatusEnum.PENDIENTE) {
+            throw new StatusAlreadyReviewedException();
+        }
+
         if(quantity <= 0) {
             throw new InvalidQuantityException();
         }
@@ -137,33 +204,8 @@ public final class MovementEntity {
             throw new InsufficientStockException();
         }
 
-        this.item = item;
-        type = MovementEnum.SALIDA;
-        this.quantity = quantity;
-        outputReason = reason;
-        status = StatusEnum.PENDIENTE;
-        createdBy = user;
-        createdAt = LocalDateTime.now();
-
-        return this;
-    }
-
-    public void updateOutput(UserEntity user, Long quantity, String reason) {
-        if(status != StatusEnum.PENDIENTE) {
-            throw new StatusAlreadyReviewedException();
-        }
-
-        if(quantity <= 0) {
-            throw new InvalidQuantityException();
-        }
-
-        if(reason == null || reason.isEmpty()) {
-            throw new OutputReasonRequiredException();
-        }
-
-        if(!item.hasStockFor(quantity)) {
-            throw new InsufficientStockException();
-        }
+        UserEntity user = new UserEntity();
+        user.setId(userId);
 
         this.quantity = quantity;
         outputReason = reason;
@@ -171,21 +213,24 @@ public final class MovementEntity {
         updatedAt = LocalDateTime.now();
     }
 
-    public void approveOutput(UserEntity user) {
+    public void approveOutput(Long userId) {
         if(status != StatusEnum.PENDIENTE) {
             throw new StatusAlreadyReviewedException();
         }
 
-        if(!item.hasStockFor(quantity)) {
-            throw new InsufficientStockException();
+        if (!item.hasReservedStockFor(quantity)) {
+            throw new InsufficientReservedStockException();
         }
+
+        UserEntity user = new UserEntity();
+        user.setId(userId);
 
         status = StatusEnum.APROBADO;
         reviewedBy = user;
         reviewedAt = LocalDateTime.now();
     }
 
-    public void reject(UserEntity user, String reason) {
+    public void reject(Long userId, String reason) {
         if(status != StatusEnum.PENDIENTE) {
             throw new StatusAlreadyReviewedException();
         }
@@ -194,10 +239,41 @@ public final class MovementEntity {
             throw new RejectReasonRequiredException();
         }
 
+        UserEntity user = new UserEntity();
+        user.setId(userId);
+
         rejectReason = reason;
         status = StatusEnum.RECHAZADO;
         reviewedBy = user;
         reviewedAt = LocalDateTime.now();
+    }
+
+    public static void ensureInvoicePdfFormat(String filename, byte[] content) throws InvalidInvoiceFormatException {
+        if(filename == null || filename.isBlank()) {
+            throw new InvalidInvoiceFormatException("No se pudo determinar el nombre del archivo de la factura o este se encuentra vacío");
+        }
+
+        if (content == null) {
+            throw new InvalidInvoiceFormatException("El contenido del archivo de la factura no puede estar vacío");
+        }
+
+        if (content.length < 5) {
+            throw new InvalidInvoiceFormatException("El archivo de la factura parece estar dañado o incompleto");
+        }
+
+        boolean isPdf = content[0] == 0x25 &&
+                content[1] == 0x50 &&
+                content[2] == 0x44 &&
+                content[3] == 0x46 &&
+                content[4] == 0x2D;
+
+        if (!isPdf) {
+            throw new InvalidInvoiceFormatException("El archivo no tiene una estructura de PDF válida");
+        }
+    }
+
+    public static String generateInvoicePath(Long itemId) {
+        return itemId + "/" + UUID.randomUUID() + ".pdf";
     }
 
     public String createdBy() {

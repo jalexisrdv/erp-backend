@@ -73,16 +73,12 @@ public final class InventoryEntity {
         return quantity <= stock();
     }
 
+    public boolean hasReservedStockFor(Long quantity) {
+        return quantity <= reservedOutputCount;
+    }
+
     public Long stock() {
         return entryCount - outputCount - reservedOutputCount;
-    }
-
-    public void increasePendingEntryCount(Long quantity) {
-        pendingEntryCount += quantity;
-    }
-
-    public void increaseReserveOutputCount(Long quantity) {
-        reservedOutputCount += quantity;
     }
 
     public Long getId() {
