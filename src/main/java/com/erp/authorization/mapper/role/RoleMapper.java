@@ -1,14 +1,15 @@
-package com.erp.user.mapper;
+package com.erp.authorization.mapper.role;
 
+import com.erp.authorization.dto.role.RoleDTO;
 import com.erp.authorization.entity.role.RoleEntity;
 import com.erp.shared.mapper.AbstractMapper;
-import com.erp.user.dto.RoleDTO;
 
 public final class RoleMapper extends AbstractMapper<RoleDTO, RoleEntity> {
     @Override
     public RoleEntity fromDTO(RoleDTO dto) {
-        return RoleEntity.withId(
-                dto.id()
+        return RoleEntity.create(
+                dto.id(),
+                dto.name()
         );
     }
 

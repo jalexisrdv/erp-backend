@@ -2,8 +2,8 @@ package com.erp.authentication.configuration;
 
 import java.util.*;
 
-import com.erp.permission.entity.PermissionEntity;
-import com.erp.role.entity.RoleEntity;
+import com.erp.authorization.entity.permission.PermissionEntity;
+import com.erp.authorization.entity.role.RoleEntity;
 import com.erp.user.entity.UserEntity;
 import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.GrantedAuthority;

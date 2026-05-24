@@ -3,7 +3,7 @@ package com.erp.user.entity;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.erp.role.entity.RoleEntity;
+import com.erp.authorization.entity.role.RoleEntity;
 import jakarta.persistence.*;
 
 @Entity
