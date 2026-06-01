@@ -1,9 +1,14 @@
 package com.jardvcode.erp.reports.entity.template;
 
+import com.jardvcode.erp.reports.exception.template.InvalidTemplateStructureException;
+import com.jardvcode.erp.reports.exception.template.section.EmptySectionsException;
 import jakarta.persistence.*;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "report_templates")
@@ -42,12 +47,51 @@ public final class TemplateEntity {
     }
 
     public void update(String name) {
-        this.setName(name);
+        this.name = name;
     }
 
     public void updateStructure(Set<SectionEntity> sections) {
+        if(sections.isEmpty()) {
+            throw new EmptySectionsException();
+        }
+
+        Map<String, Integer> duplicatedSectionCounts = new HashMap<>();
+        Map<String, Map<String, Integer>> duplicatedItemCountsBySection = new HashMap<>();
+
+        sections.stream().forEach(section -> {
+            String sectionName = section.getName().toUpperCase();
+
+            duplicatedSectionCounts.merge(sectionName, 1, Integer::sum);
+
+            Map<String, Integer> duplicatedItemCounts = section.getItems().stream()
+                    .collect(Collectors.toMap(
+                            item -> item.getLabel().toUpperCase(),
+                            item -> 1,
+                            Integer::sum
+                    ));
+
+            duplicatedItemCountsBySection.put(sectionName, duplicatedItemCounts);
+        });
+
+        duplicatedSectionCounts.entrySet().removeIf(duplicatedSectionCount -> duplicatedSectionCount.getValue() <= 1);
+
+        duplicatedItemCountsBySection.values().forEach(itemMap ->
+                itemMap.entrySet().removeIf(duplicatedItemCount -> duplicatedItemCount.getValue() <= 1)
+        );
+
+        boolean hasDuplicates = !duplicatedSectionCounts.isEmpty() ||
+                duplicatedItemCountsBySection.values().stream().anyMatch(items -> !items.isEmpty());
+
+        if(hasDuplicates) {
+            throw new InvalidTemplateStructureException(duplicatedSectionCounts, duplicatedItemCountsBySection);
+        }
+        
         this.sections.clear();
         this.sections.addAll(sections);
+    }
+
+    public boolean hasEmptySections() {
+        return sections.isEmpty() || sections.stream().anyMatch(s -> s.getItems().isEmpty());
     }
 
     public Long getId() {
@@ -72,19 +116,6 @@ public final class TemplateEntity {
 
     public void setSections(Set<SectionEntity> sections) {
         this.sections = sections;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof SectionEntity)) return false;
-        SectionEntity that = (SectionEntity) o;
-        return id != null && id.equals(that.getId());
-    }
-
-    @Override
-    public int hashCode() {
-        return getClass().hashCode();
     }
 
 }

@@ -1,10 +1,13 @@
 package com.jardvcode.erp.shared.dto.pagination;
 
-import java.util.List;
+import org.springframework.data.domain.Page;
 
-public record ResponsePaginationDTO<E>(
+import java.util.List;
+import java.util.function.Function;
+
+public record ResponsePaginationDTO<R>(
         ResponsePageDTO page,
-        List<E> data
+        List<R> data
 ) {
     public static <E> ResponsePaginationDTO create(Integer pageNumber, Integer pageSize, Integer totalPages, Long totalElements, List<E> data) {
         return new ResponsePaginationDTO(
@@ -15,6 +18,22 @@ public record ResponsePaginationDTO<E>(
                         totalElements
                 ),
                 data
+        );
+    }
+
+    public static <E, R> ResponsePaginationDTO<R> create(Page<E> page, Function<E, R> mapper) {
+        List<R> mappedContent = page.getContent().stream()
+                .map(mapper)
+                .toList();
+
+        return new ResponsePaginationDTO<>(
+                new ResponsePageDTO(
+                        page.getNumber(),
+                        page.getSize(),
+                        page.getTotalPages(),
+                        page.getTotalElements()
+                ),
+                mappedContent
         );
     }
 }

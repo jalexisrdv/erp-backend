@@ -1,13 +1,11 @@
 package com.jardvcode.erp.reports.controller.template;
 
 import com.jardvcode.erp.reports.dto.template.*;
-import com.jardvcode.erp.reports.mapper.template.TemplateCatalogMapper;
-import com.jardvcode.erp.reports.mapper.template.TemplateMapper;
-import com.jardvcode.erp.reports.mapper.template.TemplateStructureMapper;
 import com.jardvcode.erp.reports.service.template.TemplateCrud;
 import com.jardvcode.erp.shared.domain.ResponseWrapper;
 import com.jardvcode.erp.shared.dto.pagination.PaginationRequestDTO;
 import com.jardvcode.erp.shared.dto.pagination.ResponsePaginationDTO;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,35 +16,19 @@ import java.util.List;
 public final class TemplateController {
 
     private final TemplateCrud crud;
-    private final TemplateMapper templateMapper;
-    private final TemplateStructureMapper templateStructureMapper;
-    private final TemplateCatalogMapper catalogMapper;
 
     public TemplateController(TemplateCrud crud) {
         this.crud = crud;
-        templateMapper = new TemplateMapper();
-        templateStructureMapper = new TemplateStructureMapper();
-        catalogMapper = new TemplateCatalogMapper();
-    }
-
-    @GetMapping(value = "/catalog")
-    public ResponseEntity<ResponseWrapper<List<TemplateCatalogDTO>>> findAll() {
-        return ResponseWrapper.ok(catalogMapper.fromEntity(crud.findAll()));
     }
 
     @PostMapping
     public ResponseEntity<ResponseWrapper<TemplateDTO>> create(@RequestBody TemplateDTO dto) {
-        return ResponseWrapper.ok(templateMapper.fromEntity(crud.create(templateMapper.fromDTO(dto))));
-    }
-
-    @PostMapping(value = "/pagination")
-    public ResponseEntity<ResponseWrapper<ResponsePaginationDTO<TemplateDTO>>> searchByPage(@RequestBody PaginationRequestDTO dto) {
-        return ResponseWrapper.ok(templateMapper.fromPagination(crud.searchByPage(dto)));
+        return ResponseWrapper.ok(TemplateDTO.fromEntity(crud.create(dto)));
     }
 
     @PutMapping
     public ResponseEntity<ResponseWrapper<TemplateDTO>> update(@RequestBody TemplateDTO dto) {
-        return ResponseWrapper.ok(templateMapper.fromEntity(crud.update(templateMapper.fromDTO(dto))));
+        return ResponseWrapper.ok(TemplateDTO.fromEntity(crud.update(dto)));
     }
 
     @DeleteMapping(value = "{id}")
@@ -57,13 +39,23 @@ public final class TemplateController {
 
     @GetMapping(value = "/structure")
     public ResponseEntity<ResponseWrapper<TemplateStructureResponseDTO>> fetchStructure(@RequestParam("id") Long id) {
-        return ResponseWrapper.ok(templateStructureMapper.fromEntity(crud.findWithSectionsAndItemsById(id)));
+        return ResponseWrapper.ok(TemplateStructureResponseDTO.fromEntity(crud.findWithSectionsAndItemsById(id)));
     }
 
     @PutMapping(value = "/structure")
-    public ResponseEntity<ResponseWrapper<List<SectionDTO>>> updateStructure(@RequestBody TemplateStructureRequestDTO dto) {
-        crud.updateStructure(templateMapper.fromSectionDTO(dto.id(), dto.sections()));
+    public ResponseEntity<ResponseWrapper<Void>> updateStructure(@RequestBody TemplateStructureRequestDTO dto) {
+        crud.updateStructure(dto);
         return ResponseWrapper.ok(null);
+    }
+
+    @GetMapping(value = "/catalog")
+    public ResponseEntity<ResponseWrapper<List<TemplateCatalogDTO>>> findAll() {
+        return ResponseWrapper.ok(TemplateCatalogDTO.fromEntities(crud.findAll()));
+    }
+
+    @GetMapping
+    public ResponseEntity<ResponseWrapper<ResponsePaginationDTO<TemplateDTO>>> search(@Valid @RequestParam PaginationRequestDTO dto) {
+        return ResponseWrapper.ok(ResponsePaginationDTO.create(crud.search(dto), TemplateDTO::fromEntity));
     }
 
 }

@@ -1,8 +1,9 @@
 package com.jardvcode.erp.reports.service.assignment;
 
+import com.jardvcode.erp.reports.dto.assignment.AssignmentDTO;
+import com.jardvcode.erp.reports.dto.response.ResponseRequestDTO;
 import com.jardvcode.erp.reports.entity.assignment.AssignmentEntity;
 import com.jardvcode.erp.reports.entity.assignment.ResponseEntity;
-import com.jardvcode.erp.reports.entity.template.SectionEntity;
 import com.jardvcode.erp.reports.entity.template.TemplateEntity;
 import com.jardvcode.erp.reports.exception.assignment.AssigmentDoesNotExistException;
 import com.jardvcode.erp.reports.exception.assignment.IncompleteTemplateException;
@@ -13,7 +14,6 @@ import com.jardvcode.erp.shared.domain.DomainError;
 import com.jardvcode.erp.shared.domain.DomainErrorType;
 import com.jardvcode.erp.shared.domain.PaginationRules;
 import com.jardvcode.erp.shared.dto.pagination.PaginationRequestDTO;
-import com.jardvcode.erp.shared.dto.pagination.ResponsePaginationDTO;
 import com.jardvcode.erp.users.entity.UserEntity;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.Join;
@@ -28,11 +28,10 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.List;
 
 @Service
+@Transactional
 public class AssigmentCrud {
 
     private final static Logger LOG = LoggerFactory.getLogger(AssigmentCrud.class);
@@ -47,29 +46,34 @@ public class AssigmentCrud {
         this.entityManager = entityManager;
     }
 
-    @Transactional
-    public AssignmentEntity create(AssignmentEntity entity) {
+    public AssignmentEntity create(AssignmentDTO dto) {
         try {
-            TemplateEntity templateEntity = templateRepository.findWithSectionsAndItemsById(entity.getTemplate().getId())
+            TemplateEntity template = templateRepository.findWithSectionsAndItemsById(dto.template().id())
                     .orElseThrow(() -> new TemplateDoesNotExistException(DomainErrorType.DEPENDENCY));
 
-            Set<SectionEntity> sections = templateEntity.getSections();
-
-            boolean hasEmptySections = sections.isEmpty() || sections.stream().anyMatch(s -> s.getItems().isEmpty());
-
-            if(hasEmptySections) {
+            if(template.hasEmptySections()) {
                 throw new IncompleteTemplateException(DomainErrorType.DEPENDENCY);
             }
 
-            entity.createDefaultResponsesFrom(sections);
+            AssignmentEntity assignment = AssignmentEntity.create(
+                    dto.id(),
+                    template,
+                    dto.unitNumber(),
+                    dto.operator().id(),
+                    dto.mechanic().id(),
+                    dto.mileage(),
+                    dto.nextService(),
+                    dto.timeIn(),
+                    dto.timeOut()
+            );
 
-            AssignmentEntity assignment = assignmentRepository.save(entity);
+            AssignmentEntity savedAssignment = assignmentRepository.save(assignment);
 
             entityManager.flush();
-            entityManager.detach(assignment);
+            entityManager.detach(savedAssignment);
 
             return assignmentRepository.findWithTemplateAndOperatorAndMechanicById(assignment.getId())
-                    .orElseThrow(() -> new AssigmentDoesNotExistException());
+                    .orElseThrow(() -> new AssigmentDoesNotExistException(DomainErrorType.DEPENDENCY));
         } catch (DomainError e) {
             LOG.info(e.getMessage(), e);
             throw e;
@@ -81,7 +85,8 @@ public class AssigmentCrud {
 
     public AssignmentEntity findWithTemplateAndResponsesById(Long id) {
         try {
-            return assignmentRepository.findWithTemplateAndResponsesById(id).orElseThrow(() -> new AssigmentDoesNotExistException());
+            return assignmentRepository.findWithTemplateAndResponsesById(id)
+                    .orElseThrow(() -> new AssigmentDoesNotExistException(DomainErrorType.DEPENDENCY));
         } catch (DomainError e) {
             LOG.info(e.getMessage(), e);
             throw e;
@@ -91,21 +96,22 @@ public class AssigmentCrud {
         }
     }
 
-    public AssignmentEntity update(AssignmentEntity entity) {
+    public AssignmentEntity update(AssignmentDTO dto) {
         try {
-            AssignmentEntity entityFound = assignmentRepository.findById(entity.getId()).orElseThrow(() -> new AssigmentDoesNotExistException());
+            AssignmentEntity foundAssignment = assignmentRepository.findById(dto.id())
+                    .orElseThrow(() -> new AssigmentDoesNotExistException(DomainErrorType.DEPENDENCY));
 
-            entityFound.update(
-                    entity.getUnitNumber(),
-                    entity.getOperator().getId(),
-                    entity.getMechanic().getId(),
-                    entity.getMileage(),
-                    entity.getNextService(),
-                    entity.getTimeIn(),
-                    entity.getTimeOut()
+            foundAssignment.update(
+                    dto.unitNumber(),
+                    dto.operator().id(),
+                    dto.mechanic().id(),
+                    dto.mileage(),
+                    dto.nextService(),
+                    dto.timeIn(),
+                    dto.timeOut()
             );
 
-            return assignmentRepository.save(entityFound);
+            return assignmentRepository.save(foundAssignment);
         } catch (DomainError e) {
             LOG.info(e.getMessage(), e);
             throw e;
@@ -115,9 +121,9 @@ public class AssigmentCrud {
         }
     }
 
-    public ResponsePaginationDTO<AssignmentEntity> searchByPage(PaginationRequestDTO paginationDTO) {
+    public Page<AssignmentEntity> search(PaginationRequestDTO paginationDTO) {
         try {
-            Pageable pageable = PageRequest.of(paginationDTO.page().number(), PaginationRules.FETCH_SIZE, Sort.by("id").descending());
+            Pageable pageable = PageRequest.of(paginationDTO.page(), PaginationRules.FETCH_SIZE, Sort.by("id").descending());
 
             Specification<AssignmentEntity> specification = (root, query, builder) -> {
                 String search = "%" + paginationDTO.search().toLowerCase() + "%";
@@ -129,15 +135,7 @@ public class AssigmentCrud {
                 );
             };
 
-            Page<AssignmentEntity> page = assignmentRepository.findAll(specification, pageable);
-
-            return ResponsePaginationDTO.create(
-                    page.getNumber(),
-                    page.getSize(),
-                    page.getTotalPages(),
-                    page.getTotalElements(),
-                    page.getContent()
-            );
+            return assignmentRepository.findAll(specification, pageable);
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
             throw e;
@@ -153,23 +151,24 @@ public class AssigmentCrud {
         }
     }
 
-    public AssignmentEntity updateResponses(AssignmentEntity assignmentEntity) {
+    public void updateResponses(Long assignmentId, List<ResponseRequestDTO> responseDtos) {
         try {
-            AssignmentEntity assignmentEntityFound = assignmentRepository.findWithTemplateAndResponsesById(assignmentEntity.getId())
-                    .orElseThrow(() -> new AssigmentDoesNotExistException());
+            AssignmentEntity foundAssignment = assignmentRepository.findWithTemplateAndResponsesById(assignmentId)
+                    .orElseThrow(() -> new AssigmentDoesNotExistException(DomainErrorType.DEPENDENCY));
 
-            Map<Long, ResponseEntity> responseEntitiesFound = assignmentEntityFound.getResponses()
-                    .stream().collect(Collectors.toMap(ResponseEntity::getId, responseEntity -> responseEntity));
+            List<ResponseEntity> incomingResponses = responseDtos.stream()
+                            .map(response -> {
+                                return ResponseEntity.create(
+                                        response.id(),
+                                        response.status(),
+                                        response.comment()
+                                );
+                            })
+                            .toList();
 
-            assignmentEntity.getResponses().forEach(entity -> {
-                ResponseEntity responseEntityFound = responseEntitiesFound.get(entity.getId());
+            foundAssignment.updateResponses(incomingResponses);
 
-                responseEntityFound.update(entity.getStatus(), entity.getComment());
-            });
-
-            assignmentEntityFound.updateStatus();
-
-            return assignmentRepository.save(assignmentEntityFound);
+            assignmentRepository.save(foundAssignment);
         } catch (DomainError e) {
             LOG.info(e.getMessage(), e);
             throw e;
