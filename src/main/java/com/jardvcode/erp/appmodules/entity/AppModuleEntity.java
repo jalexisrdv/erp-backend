@@ -30,6 +30,12 @@ public class AppModuleEntity {
         return entity;
     }
 
+    public void update(String code, String name, Long parentId) {
+        this.code = code;
+        this.name = name;
+        this.parentId = parentId;
+    }
+
     public Long getId() {
         return id;
     }

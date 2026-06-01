@@ -1,11 +1,13 @@
 package com.jardvcode.erp.appmodules.service;
 
+import com.jardvcode.erp.appmodules.dto.ModuleRequestDTO;
 import com.jardvcode.erp.appmodules.entity.AppModuleEntity;
 import com.jardvcode.erp.appmodules.entity.AppModuleViewEntity;
 import com.jardvcode.erp.appmodules.exception.AppModuleDoesNotExistException;
 import com.jardvcode.erp.appmodules.repository.AppModuleRepository;
 import com.jardvcode.erp.appmodules.repository.AppModuleViewRepository;
 import com.jardvcode.erp.shared.domain.DomainError;
+import com.jardvcode.erp.shared.domain.DomainErrorType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -27,11 +29,19 @@ public class AppModuleCrud {
         this.viewRepository = viewRepository;
     }
 
-    public AppModuleViewEntity create(AppModuleEntity entity) {
+    public AppModuleViewEntity create(ModuleRequestDTO dto) {
         try {
-            AppModuleEntity savedEntity = repository.save(entity);
+            AppModuleEntity appModule = AppModuleEntity.create(
+                    dto.id(),
+                    dto.code(),
+                    dto.name(),
+                    dto.parentId()
+            );
 
-            return viewRepository.findById(savedEntity.getId()).orElseThrow(() -> new AppModuleDoesNotExistException());
+            AppModuleEntity savedAppModule = repository.save(appModule);
+
+            return viewRepository.findById(savedAppModule.getId())
+                    .orElseThrow(() -> new AppModuleDoesNotExistException(DomainErrorType.DEPENDENCY));
         } catch(DomainError e) {
             LOG.info(e.getMessage(), e);
             throw e;
@@ -41,20 +51,19 @@ public class AppModuleCrud {
         }
     }
 
-    public List<AppModuleViewEntity> findByParentIdNotNull() {
+    public AppModuleViewEntity update(ModuleRequestDTO dto) {
         try {
-            return viewRepository.findByParentIdNotNull();
-        } catch(Exception e) {
-            LOG.info(e.getMessage(), e);
-            throw e;
-        }
-    }
+            AppModuleEntity foundAppModule = repository.findById(dto.id())
+                    .orElseThrow(() -> new AppModuleDoesNotExistException(DomainErrorType.DEPENDENCY));
 
-    public AppModuleViewEntity update(AppModuleEntity entity) {
-        try {
-            AppModuleEntity savedEntity = repository.save(entity);
+            foundAppModule.update(
+                    dto.code(),
+                    dto.name(),
+                    dto.parentId()
+            );
 
-            return viewRepository.findById(savedEntity.getId()).orElseThrow(() -> new AppModuleDoesNotExistException());
+            return viewRepository.findById(dto.id())
+                    .orElseThrow(() -> new AppModuleDoesNotExistException(DomainErrorType.DEPENDENCY));
         } catch(DomainError e) {
             LOG.info(e.getMessage(), e);
             throw e;
@@ -67,6 +76,15 @@ public class AppModuleCrud {
     public void deleteById(Long id) {
         try {
             repository.deleteById(id);
+        } catch(Exception e) {
+            LOG.info(e.getMessage(), e);
+            throw e;
+        }
+    }
+
+    public List<AppModuleViewEntity> findByParentIdNotNull() {
+        try {
+            return viewRepository.findByParentIdNotNull();
         } catch(Exception e) {
             LOG.info(e.getMessage(), e);
             throw e;

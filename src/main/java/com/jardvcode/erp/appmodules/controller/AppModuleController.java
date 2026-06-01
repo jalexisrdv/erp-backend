@@ -2,7 +2,6 @@ package com.jardvcode.erp.appmodules.controller;
 
 import com.jardvcode.erp.appmodules.dto.ModuleRequestDTO;
 import com.jardvcode.erp.appmodules.dto.ModuleResponseDTO;
-import com.jardvcode.erp.appmodules.mapper.AppModuleMapper;
 import com.jardvcode.erp.appmodules.service.AppModuleCrud;
 import com.jardvcode.erp.shared.domain.ResponseWrapper;
 import org.springframework.http.ResponseEntity;
@@ -15,26 +14,24 @@ import java.util.List;
 public final class AppModuleController {
 
     private final AppModuleCrud crud;
-    private final AppModuleMapper mapper;
-    
+
     public AppModuleController(AppModuleCrud crud) {
         this.crud = crud;
-        this.mapper = new AppModuleMapper();
     }
 
     @PostMapping
     public ResponseEntity<ResponseWrapper<ModuleResponseDTO>> create(@RequestBody ModuleRequestDTO dto) {
-        return ResponseWrapper.ok(mapper.fromEntity(crud.create(mapper.fromDTO(dto))));
+        return ResponseWrapper.ok(ModuleResponseDTO.fromEntity(crud.create(dto)));
     }
 
     @GetMapping
     public ResponseEntity<ResponseWrapper<List<ModuleResponseDTO>>> findByParentIdNotNull() {
-        return ResponseWrapper.ok(mapper.fromEntity(crud.findByParentIdNotNull()));
+        return ResponseWrapper.ok(ModuleResponseDTO.fromEntities(crud.findByParentIdNotNull()));
     }
 
     @PutMapping
     public ResponseEntity<ResponseWrapper<ModuleResponseDTO>> update(@RequestBody ModuleRequestDTO dto) {
-        return ResponseWrapper.ok(mapper.fromEntity(crud.update(mapper.fromDTO(dto))));
+        return ResponseWrapper.ok(ModuleResponseDTO.fromEntity(crud.update(dto)));
     }
 
     @DeleteMapping(value = "{id}")
