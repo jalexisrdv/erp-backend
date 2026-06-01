@@ -6,10 +6,8 @@ import com.jardvcode.erp.shared.dto.pagination.ResponsePaginationDTO;
 import com.jardvcode.erp.users.dto.RoleDTO;
 import com.jardvcode.erp.users.dto.UserCatalogDTO;
 import com.jardvcode.erp.users.dto.UserDTO;
-import com.jardvcode.erp.users.mapper.RoleMapper;
-import com.jardvcode.erp.users.mapper.UserCatalogMapper;
-import com.jardvcode.erp.users.mapper.UserMapper;
 import com.jardvcode.erp.users.service.UserCrud;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,35 +18,29 @@ import java.util.List;
 public final class UserController {
 
     private final UserCrud crud;
-    private final UserCatalogMapper userCatalogMapper;
-    private final UserMapper userMapper;
-    private final RoleMapper roleMapper;
 
     public UserController(UserCrud crud) {
         this.crud = crud;
-        this.userCatalogMapper = new UserCatalogMapper();
-        this.userMapper = new UserMapper();
-        this.roleMapper = new RoleMapper();
     }
 
     @GetMapping(value = "/catalog")
     public ResponseEntity<ResponseWrapper<List<UserCatalogDTO>>> findAll() {
-        return ResponseWrapper.ok(userCatalogMapper.fromEntity(crud.findAll()));
+        return ResponseWrapper.ok(UserCatalogDTO.fromEntities(crud.findAll()));
+    }
+
+    @GetMapping
+    public ResponseEntity<ResponseWrapper<ResponsePaginationDTO<UserDTO>>> search(@Valid @RequestParam PaginationRequestDTO dto) {
+        return ResponseWrapper.ok(ResponsePaginationDTO.create(crud.search(dto), UserDTO::fromEntity));
     }
 
     @PostMapping
     public ResponseEntity<ResponseWrapper<UserDTO>> create(@RequestBody UserDTO dto) {
-        return ResponseWrapper.ok(userMapper.fromEntity(crud.create(userMapper.fromDTO(dto))));
-    }
-
-    @PostMapping(value = "/pagination")
-    public ResponseEntity<ResponseWrapper<ResponsePaginationDTO<UserDTO>>> searchByPage(@RequestBody PaginationRequestDTO dto) {
-        return ResponseWrapper.ok(userMapper.fromPagination(crud.searchByPage(dto)));
+        return ResponseWrapper.ok(UserDTO.fromEntity(crud.create(dto)));
     }
 
     @PutMapping
     public ResponseEntity<ResponseWrapper<UserDTO>> update(@RequestBody UserDTO dto) {
-        return ResponseWrapper.ok(userMapper.fromEntity(crud.update(userMapper.fromDTO(dto))));
+        return ResponseWrapper.ok(UserDTO.fromEntity(crud.update(dto)));
     }
 
     @DeleteMapping(value = "{id}")
@@ -59,12 +51,12 @@ public final class UserController {
 
     @PutMapping(value = "{id}/roles")
     public ResponseEntity<ResponseWrapper<List<RoleDTO>>> assignRoles(@PathVariable Long id, @RequestBody List<RoleDTO> dtos) {
-        return ResponseWrapper.ok(roleMapper.fromEntity(crud.assignRoles(id, roleMapper.fromDTO(dtos))));
+        return ResponseWrapper.ok(RoleDTO.fromEntities(crud.assignRoles(id, dtos)));
     }
 
     @GetMapping(value = "{id}/roles")
     public ResponseEntity<ResponseWrapper<List<RoleDTO>>> fetchRoles(@PathVariable Long id) {
-        return ResponseWrapper.ok(roleMapper.fromEntity(crud.fetchRoles(id)));
+        return ResponseWrapper.ok(RoleDTO.fromEntities(crud.fetchRoles(id)));
     }
 
 }

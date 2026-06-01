@@ -1,6 +1,7 @@
 package com.jardvcode.erp.users.entity;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import com.jardvcode.erp.authorization.entity.role.RoleEntity;
@@ -52,25 +53,30 @@ public class UserEntity {
     public static UserEntity create(Long id, String firstName, String middleName, String lastName, String secondLastName, String phoneNumber, String username) {
         UserEntity entity = new UserEntity();
 
-        entity.setId(id);
-        entity.setFirstName(firstName);
-        entity.setMiddleName(middleName);
-        entity.setLastName(lastName);
-        entity.setSecondLastName(secondLastName);
-        entity.setPhoneNumber(phoneNumber);
-        entity.setUsername(username);
-        entity.setPassword(null);
-        entity.setEnabled(false);
+        entity.id = id;
+        entity.firstName = firstName;
+        entity.middleName = middleName;
+        entity.lastName = lastName;
+        entity.secondLastName = secondLastName;
+        entity.phoneNumber = phoneNumber;
+        entity.username = username;
+        entity.password = null;
+        entity.enabled = false;
 
         return entity;
     }
 
-    public static UserEntity from(Long id, String username) {
-        UserEntity user = new UserEntity();
-        user.setId(id);
-        user.setUsername(username);
+    public void update(String firstName, String middleName, String lastName, String secondLastName, String phoneNumber, String username) {
+        this.firstName = firstName;
+        this.middleName = middleName;
+        this.lastName = lastName;
+        this.secondLastName = secondLastName;
+        this.phoneNumber = phoneNumber;
+        this.username = username;
+    }
 
-        return user;
+    public void assignRoles(Set<RoleEntity> roles) {
+        this.roles = roles;
     }
 
     public void resetPassword(String password) {
