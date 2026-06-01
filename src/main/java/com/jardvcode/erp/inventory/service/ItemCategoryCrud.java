@@ -1,5 +1,6 @@
 package com.jardvcode.erp.inventory.service;
 
+import com.jardvcode.erp.inventory.dto.ItemCategoryDTO;
 import com.jardvcode.erp.inventory.entity.ItemCategoryEntity;
 import com.jardvcode.erp.inventory.exception.category.ItemCategoryAlreadyExistsException;
 import com.jardvcode.erp.inventory.exception.category.ItemCategoryDoesNotExistException;
@@ -8,7 +9,6 @@ import com.jardvcode.erp.shared.domain.DomainError;
 import com.jardvcode.erp.shared.domain.DomainErrorType;
 import com.jardvcode.erp.shared.domain.PaginationRules;
 import com.jardvcode.erp.shared.dto.pagination.PaginationRequestDTO;
-import com.jardvcode.erp.shared.dto.pagination.ResponsePaginationDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -31,13 +31,18 @@ public final class ItemCategoryCrud {
         this.repository = repository;
     }
 
-    public ItemCategoryEntity create(ItemCategoryEntity entity) {
+    public ItemCategoryEntity create(ItemCategoryDTO dto) {
         try {
-            if(repository.findByName(entity.getName()).isPresent()) {
+            if(repository.findByName(dto.name()).isPresent()) {
                 throw new ItemCategoryAlreadyExistsException(DomainErrorType.DEPENDENCY);
             }
 
-            return repository.save(entity);
+            ItemCategoryEntity itemCategory = ItemCategoryEntity.create(
+              dto.id(),
+              dto.name()
+            );
+
+            return repository.save(itemCategory);
         } catch(DomainError e) {
             LOG.info(e.getMessage(), e);
             throw e;
@@ -56,9 +61,9 @@ public final class ItemCategoryCrud {
         }
     }
 
-    public ResponsePaginationDTO<ItemCategoryEntity> searchByPage(PaginationRequestDTO paginationDTO) {
+    public Page<ItemCategoryEntity> search(PaginationRequestDTO paginationDTO) {
         try {
-            Pageable pageable = PageRequest.of(paginationDTO.page().number(), PaginationRules.FETCH_SIZE, Sort.by("id").descending());
+            Pageable pageable = PageRequest.of(paginationDTO.page(), PaginationRules.FETCH_SIZE, Sort.by("id").descending());
 
             Specification<ItemCategoryEntity> specification = (root, query, builder) -> {
                 String search = "%" + paginationDTO.search().toLowerCase() + "%";
@@ -67,28 +72,20 @@ public final class ItemCategoryCrud {
                 );
             };
 
-            Page<ItemCategoryEntity> page = repository.findAll(specification, pageable);
-
-            return ResponsePaginationDTO.create(
-                    page.getNumber(),
-                    page.getSize(),
-                    page.getTotalPages(),
-                    page.getTotalElements(),
-                    page.getContent()
-            );
+            return repository.findAll(specification, pageable);
         } catch(Exception e) {
             LOG.error(e.getMessage(), e);
             throw e;
         }
     }
 
-    public ItemCategoryEntity update(ItemCategoryEntity entity) {
+    public ItemCategoryEntity update(ItemCategoryDTO dto) {
         try {
-            ItemCategoryEntity entityFound = repository.findById(entity.getId()).orElseThrow(() -> new ItemCategoryDoesNotExistException(DomainErrorType.DEPENDENCY));
+            ItemCategoryEntity foundItemCategory = repository.findById(dto.id()).orElseThrow(() -> new ItemCategoryDoesNotExistException(DomainErrorType.DEPENDENCY));
 
-            entityFound.setName(entity.getName());
+            foundItemCategory.update(dto.name());
 
-            return repository.save(entityFound);
+            return repository.save(foundItemCategory);
         } catch(DomainError e) {
             LOG.info(e.getMessage(), e);
             throw e;

@@ -22,6 +22,10 @@ public final class ItemCategoryEntity {
         return entity;
     }
 
+    public void update(String name) {
+        this.name = name;
+    }
+
     public Long getId() {
         return id;
     }

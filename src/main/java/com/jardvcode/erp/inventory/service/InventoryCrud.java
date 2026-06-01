@@ -1,15 +1,18 @@
 package com.jardvcode.erp.inventory.service;
 
 import com.jardvcode.erp.authentication.service.AuthenticatedUserProvider;
+import com.jardvcode.erp.inventory.dto.InventoryDTO;
 import com.jardvcode.erp.inventory.entity.InventoryEntity;
+import com.jardvcode.erp.inventory.entity.ItemCategoryEntity;
+import com.jardvcode.erp.inventory.exception.category.ItemCategoryDoesNotExistException;
 import com.jardvcode.erp.inventory.exception.inventory.ItemDoesNotExistException;
 import com.jardvcode.erp.inventory.exception.inventory.ItemAlreadyExistsException;
 import com.jardvcode.erp.inventory.repository.InventoryRepository;
+import com.jardvcode.erp.inventory.repository.ItemCategoryRepository;
 import com.jardvcode.erp.shared.domain.DomainError;
 import com.jardvcode.erp.shared.domain.DomainErrorType;
 import com.jardvcode.erp.shared.domain.PaginationRules;
 import com.jardvcode.erp.shared.dto.pagination.PaginationRequestDTO;
-import com.jardvcode.erp.shared.dto.pagination.ResponsePaginationDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -18,32 +21,43 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public final class InventoryCrud {
+@Transactional
+public class InventoryCrud {
 
     private final static Logger LOG = LoggerFactory.getLogger(InventoryCrud.class);
 
-    private final InventoryRepository repository;
+    private final InventoryRepository inventoryRepository;
+    private final ItemCategoryRepository itemCategoryRepository;
     private final AuthenticatedUserProvider userProvider;
 
-    public InventoryCrud(InventoryRepository repository, AuthenticatedUserProvider userProvider) {
-        this.repository = repository;
+    public InventoryCrud(InventoryRepository repository, ItemCategoryRepository itemCategoryRepository, AuthenticatedUserProvider userProvider) {
+        this.inventoryRepository = repository;
+        this.itemCategoryRepository = itemCategoryRepository;
         this.userProvider = userProvider;
     }
 
-    public InventoryEntity create(InventoryEntity entity) {
+    public InventoryEntity create(InventoryDTO dto) {
         try {
-            if(repository.findByItemName(entity.getItemName()).isPresent()) {
+            ItemCategoryEntity foundItemCategory = itemCategoryRepository.findById(dto.category().id())
+                    .orElseThrow(() -> new ItemCategoryDoesNotExistException(DomainErrorType.DEPENDENCY));
+
+            if(inventoryRepository.findByItemName(dto.name()).isPresent()) {
                 throw new ItemAlreadyExistsException(DomainErrorType.DEPENDENCY);
             }
 
-            entity.setCreatedBy(userProvider.getUserId());
-            entity.setCreatedAt(LocalDateTime.now());
+            InventoryEntity inventory = InventoryEntity.create(
+                    dto.id(),
+                    foundItemCategory,
+                    dto.code(),
+                    dto.name(),
+                    dto.minimumStock(),
+                    userProvider.getUserId()
+            );
 
-            return repository.save(entity);
+            return inventoryRepository.save(inventory);
         } catch(DomainError e) {
             LOG.info(e.getMessage(), e);
             throw e;
@@ -53,48 +67,45 @@ public final class InventoryCrud {
         }
     }
 
-    public ResponsePaginationDTO<InventoryEntity> searchByPage(PaginationRequestDTO paginationDTO) {
+    public InventoryEntity update(InventoryDTO dto) {
         try {
-            Pageable pageable = PageRequest.of(paginationDTO.page().number(), PaginationRules.FETCH_SIZE, Sort.by("id").descending());
+            ItemCategoryEntity foundItemCategory = itemCategoryRepository.findById(dto.category().id())
+                    .orElseThrow(() -> new ItemCategoryDoesNotExistException(DomainErrorType.DEPENDENCY));
+
+            InventoryEntity foundInventory = inventoryRepository.findById(dto.id())
+                    .orElseThrow(() -> new ItemDoesNotExistException(DomainErrorType.DEPENDENCY));
+
+            foundInventory.update(
+                    foundItemCategory,
+                    dto.code(),
+                    dto.name(),
+                    dto.minimumStock(),
+                    userProvider.getUserId()
+            );
+
+            return inventoryRepository.save(foundInventory);
+        } catch(DomainError e) {
+            LOG.info(e.getMessage(), e);
+            throw e;
+        } catch(Exception e) {
+            LOG.error(e.getMessage(), e);
+            throw e;
+        }
+    }
+
+    public Page<InventoryEntity> search(PaginationRequestDTO dto) {
+        try {
+            Pageable pageable = PageRequest.of(dto.page(), PaginationRules.FETCH_SIZE, Sort.by("id").descending());
 
             Specification<InventoryEntity> specification = (root, query, builder) -> {
-                String search = "%" + paginationDTO.search().toLowerCase() + "%";
+                String search = "%" + dto.search().toLowerCase() + "%";
                 return builder.or(
                         builder.like(builder.lower(root.get("itemCode")), search),
                         builder.like(builder.lower(root.get("itemName")), search)
                 );
             };
 
-            Page<InventoryEntity> page = repository.findAll(specification, pageable);
-
-            return ResponsePaginationDTO.create(
-                    page.getNumber(),
-                    page.getSize(),
-                    page.getTotalPages(),
-                    page.getTotalElements(),
-                    page.getContent()
-            );
-        } catch(Exception e) {
-            LOG.error(e.getMessage(), e);
-            throw e;
-        }
-    }
-
-    public InventoryEntity update(InventoryEntity entity) {
-        try {
-            InventoryEntity entityFound = repository.findById(entity.getId()).orElseThrow(() -> new ItemDoesNotExistException());
-
-            entityFound.setCategory(entity.getCategory());
-            entityFound.setItemCode(entity.getItemCode());
-            entityFound.setItemName(entity.getItemName());
-            entityFound.setMinimumStock(entity.getMinimumStock());
-            entityFound.setUpdatedBy(userProvider.getUserId());
-            entityFound.setUpdatedAt(LocalDateTime.now());
-
-            return repository.save(entityFound);
-        } catch(DomainError e) {
-            LOG.info(e.getMessage(), e);
-            throw e;
+            return inventoryRepository.findAll(specification, pageable);
         } catch(Exception e) {
             LOG.error(e.getMessage(), e);
             throw e;

@@ -5,8 +5,7 @@ import com.jardvcode.erp.inventory.dto.MovementFilterDTO;
 import com.jardvcode.erp.inventory.entity.MovementEntity;
 import com.jardvcode.erp.inventory.repository.InventoryMovementRepository;
 import com.jardvcode.erp.shared.domain.PaginationRules;
-import com.jardvcode.erp.shared.dto.pagination.PaginatedSearchRequestDTO;
-import com.jardvcode.erp.shared.dto.pagination.ResponsePaginationDTO;
+import com.jardvcode.erp.shared.dto.pagination.PaginationRequestDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -31,9 +30,9 @@ public class MovementSearcher {
         this.userProvider = userProvider;
     }
 
-    public ResponsePaginationDTO<MovementEntity> searchByPage(PaginatedSearchRequestDTO<MovementFilterDTO> paginationDTO) {
+    public Page<MovementEntity> search(PaginationRequestDTO paginationRequestDTO, MovementFilterDTO filterDTO) {
         try {
-            Pageable pageable = PageRequest.of(paginationDTO.page().number(), PaginationRules.FETCH_SIZE, Sort.by("createdAt").descending());
+            Pageable pageable = PageRequest.of(paginationRequestDTO.page(), PaginationRules.FETCH_SIZE, Sort.by("createdAt").descending());
 
             Specification<MovementEntity> specification = null;
 
@@ -41,23 +40,15 @@ public class MovementSearcher {
                 specification = MovementSpecification.isUserdId(userProvider.getUserId());
             }
 
-            if(paginationDTO.hasFilter() && paginationDTO.filter().hasArticleId()) {
-                specification = MovementSpecification.isArticleId(paginationDTO.filter().articleId());
+            if(filterDTO.hasArticleId()) {
+                specification = MovementSpecification.isArticleId(filterDTO.articleId());
             }
 
-            if(paginationDTO.hasFilter() && paginationDTO.filter().hasStatus()) {
-                specification = specification.and(MovementSpecification.isStatus(paginationDTO.filter().status()));
+            if(filterDTO.hasStatus()) {
+                specification = specification.and(MovementSpecification.isStatus(filterDTO.status()));
             }
 
-            Page<MovementEntity> page = repository.findAll(specification, pageable);
-
-            return ResponsePaginationDTO.create(
-                    page.getNumber(),
-                    page.getSize(),
-                    page.getTotalPages(),
-                    page.getTotalElements(),
-                    page.getContent()
-            );
+            return repository.findAll(specification, pageable);
         } catch(Exception e) {
             LOG.error(e.getMessage(), e);
             throw e;

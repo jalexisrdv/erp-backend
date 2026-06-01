@@ -49,24 +49,32 @@ public final class InventoryEntity {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    public static InventoryEntity create(Long id, Long categoryId, String categoryName, String itemCode, String itemName, Integer minimumStock) {
-        ItemCategoryEntity category = new ItemCategoryEntity();
-        category.setId(categoryId);
-        category.setName(categoryName);
-
+    public static InventoryEntity create(Long id, ItemCategoryEntity category, String itemCode, String itemName, Integer minimumStock, Long userId) {
         InventoryEntity entity = new InventoryEntity();
 
-        entity.setId(id);
-        entity.setCategory(category);
-        entity.setItemCode(itemCode);
-        entity.setItemName(itemName);
-        entity.setMinimumStock(minimumStock);
-        entity.setEntryCount(0L);
-        entity.setOutputCount(0L);
-        entity.setPendingEntryCount(0L);
-        entity.setReservedOutputCount(0L);
+        entity.id = id;
+        entity.category = category;
+        entity.itemCode = itemCode;
+        entity.itemName = itemName;
+        entity.minimumStock = minimumStock;
+        entity.entryCount = 0L;
+        entity.outputCount = 0L;
+        entity.pendingEntryCount = 0L;
+        entity.reservedOutputCount = 0L;
+        entity.createdBy = userId;
+        entity.createdAt = LocalDateTime.now();
 
         return entity;
+    }
+
+    public void update(ItemCategoryEntity category, String code, String name, Integer minimumStock, Long userId) {
+        this.category = category;
+
+        itemCode = code;
+        itemName = name;
+        this.minimumStock = minimumStock;
+        updatedBy = userId;
+        updatedAt = LocalDateTime.now();
     }
 
     public boolean hasStockFor(Long quantity) {
