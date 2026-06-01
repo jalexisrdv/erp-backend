@@ -7,4 +7,5 @@ public record PermissionRequestDTO(
         String name,
         String description
 ) {
+
 }

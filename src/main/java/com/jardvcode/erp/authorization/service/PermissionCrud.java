@@ -1,11 +1,13 @@
 package com.jardvcode.erp.authorization.service;
 
+import com.jardvcode.erp.authorization.dto.permission.PermissionRequestDTO;
 import com.jardvcode.erp.authorization.entity.permission.PermissionEntity;
 import com.jardvcode.erp.authorization.entity.permission.PermissionViewEntity;
 import com.jardvcode.erp.authorization.exception.PermissionDoesNotExistException;
 import com.jardvcode.erp.authorization.repository.permission.PermissionRepository;
 import com.jardvcode.erp.authorization.repository.permission.PermissionViewRepository;
 import com.jardvcode.erp.shared.domain.DomainError;
+import com.jardvcode.erp.shared.domain.DomainErrorType;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,11 +29,20 @@ public class PermissionCrud {
         this.viewRepository = viewRepository;
     }
 
-    public PermissionViewEntity create(PermissionEntity entity) {
+    public PermissionViewEntity create(PermissionRequestDTO dto) {
         try {
-            PermissionEntity savedEntity = repository.save(entity);
+            PermissionEntity permission = PermissionEntity.create(
+                    dto.id(),
+                    dto.moduleId(),
+                    dto.code(),
+                    dto.name(),
+                    dto.description()
+            );
 
-            return viewRepository.findById(savedEntity.getId()).orElseThrow(() -> new PermissionDoesNotExistException());
+            PermissionEntity savedPermission = repository.save(permission);
+
+            return viewRepository.findById(savedPermission.getId())
+                    .orElseThrow(() -> new PermissionDoesNotExistException(DomainErrorType.DEPENDENCY));
         } catch(DomainError e) {
             LOG.info(e.getMessage(), e);
             throw e;
@@ -50,11 +61,22 @@ public class PermissionCrud {
         }
     }
 
-    public PermissionViewEntity update(PermissionEntity entity) {
+    public PermissionViewEntity update(PermissionRequestDTO dto) {
         try {
-            PermissionEntity savedEntity = repository.save(entity);
+            PermissionEntity foundPermission = repository.findById(dto.id())
+                    .orElseThrow(() -> new PermissionDoesNotExistException(DomainErrorType.DEPENDENCY));
 
-            return viewRepository.findById(savedEntity.getId()).orElseThrow(() -> new PermissionDoesNotExistException());
+            foundPermission.update(
+                    dto.moduleId(),
+                    dto.code(),
+                    dto.name(),
+                    dto.description()
+            );
+
+            repository.save(foundPermission);
+
+            return viewRepository.findById(dto.id())
+                    .orElseThrow(() -> new PermissionDoesNotExistException(DomainErrorType.DEPENDENCY));
         } catch(DomainError e) {
             LOG.info(e.getMessage(), e);
             throw e;

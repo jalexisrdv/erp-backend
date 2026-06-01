@@ -34,6 +34,21 @@ public class PermissionEntity {
         return entity;
     }
 
+    public void update(Long moduleId, String code, String name, String description) {
+        this.moduleId = moduleId;
+        this.code = code;
+        this.name = name;
+        this.description = description;
+    }
+
+    public static PermissionEntity withId(Long id) {
+        PermissionEntity entity = new PermissionEntity();
+
+        entity.id = id;
+
+        return entity;
+    }
+
     public Long getId() {
         return id;
     }

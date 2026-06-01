@@ -1,6 +1,7 @@
 package com.jardvcode.erp.authorization.service;
 
-import com.jardvcode.erp.authorization.entity.permission.PermissionEntity;
+import com.jardvcode.erp.authorization.dto.role.PermissionDTO;
+import com.jardvcode.erp.authorization.dto.role.RoleDTO;
 import com.jardvcode.erp.authorization.entity.role.RoleEntity;
 import com.jardvcode.erp.authorization.entity.role.RolePermissionViewEntity;
 import com.jardvcode.erp.authorization.exception.RoleDoesNotExistException;
@@ -10,7 +11,6 @@ import com.jardvcode.erp.shared.domain.DomainError;
 import com.jardvcode.erp.shared.domain.DomainErrorType;
 import com.jardvcode.erp.shared.domain.PaginationRules;
 import com.jardvcode.erp.shared.dto.pagination.PaginationRequestDTO;
-import com.jardvcode.erp.shared.dto.pagination.ResponsePaginationDTO;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,10 +21,10 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@Transactional
 public class RoleCrud {
 
     private final static Logger LOG = LoggerFactory.getLogger(RoleCrud.class);
@@ -37,54 +37,28 @@ public class RoleCrud {
         this.rolePermissionViewRepository = rolePermissionViewRepository;
     }
 
-    public RoleEntity create(RoleEntity entity) {
+    public RoleEntity create(RoleDTO dto) {
         try {
-            return repository.save(entity);
-        } catch(Exception e) {
-            LOG.error(e.getMessage(), e);
-            throw e;
-        }
-    }
-
-    public List<RoleEntity> findAll() {
-        try {
-            return repository.findAll();
-        } catch(Exception e) {
-            LOG.error(e.getMessage(), e);
-            throw e;
-        }
-    }
-
-    public ResponsePaginationDTO<RoleEntity> searchByPagination(PaginationRequestDTO paginationDTO) {
-        try {
-            Pageable pageable = PageRequest.of(paginationDTO.page().number(), PaginationRules.FETCH_SIZE, Sort.by("id").descending());
-
-            Specification<RoleEntity> specification = (root, query, builder) -> {
-                return builder.like(builder.lower(root.get("name")), "%" + paginationDTO.search().toLowerCase()  + "%");
-            };
-
-            Page<RoleEntity> page = repository.findAll(specification, pageable);
-
-            return ResponsePaginationDTO.create(
-                    page.getNumber(),
-                    page.getSize(),
-                    page.getTotalPages(),
-                    page.getTotalElements(),
-                    page.getContent()
+            RoleEntity role = RoleEntity.create(
+                    dto.id(),
+                    dto.name()
             );
+
+            return repository.save(role);
         } catch(Exception e) {
             LOG.error(e.getMessage(), e);
             throw e;
         }
     }
 
-    public RoleEntity update(RoleEntity entity) {
+    public RoleEntity update(RoleDTO dto) {
         try {
-            RoleEntity entityFound = repository.findById(entity.getId()).orElseThrow(() -> new RoleDoesNotExistException());
+            RoleEntity foundRole = repository.findById(dto.id())
+                    .orElseThrow(() -> new RoleDoesNotExistException(DomainErrorType.DEPENDENCY));
 
-            entityFound.setName(entity.getName());
+            foundRole.update(dto.name());
 
-            return repository.save(entityFound);
+            return repository.save(foundRole);
         } catch(DomainError e) {
             LOG.info(e.getMessage(), e);
             throw e;
@@ -103,11 +77,13 @@ public class RoleCrud {
         }
     }
 
-    @Transactional
-    public List<RolePermissionViewEntity> assignPermissions(Long roleId, List<PermissionEntity> permissions) {
+    public List<RolePermissionViewEntity> assignPermissions(Long roleId, List<PermissionDTO> dtos) {
         try {
-            RoleEntity role = repository.findById(roleId).orElseThrow(() -> new RoleDoesNotExistException(DomainErrorType.DEPENDENCY));
-            role.setPermissions(new ArrayList<>(permissions));
+            RoleEntity role = repository.findById(roleId)
+                    .orElseThrow(() -> new RoleDoesNotExistException(DomainErrorType.DEPENDENCY));
+
+            List<Long> permissionIds = dtos.stream().map((permission) -> permission.id()).toList();
+            role.assignPermissions(permissionIds);
 
             repository.save(role);
 
@@ -127,6 +103,30 @@ public class RoleCrud {
         } catch(DomainError e) {
             LOG.info(e.getMessage(), e);
             throw e;
+        } catch(Exception e) {
+            LOG.error(e.getMessage(), e);
+            throw e;
+        }
+    }
+
+    public List<RoleEntity> findAll() {
+        try {
+            return repository.findAll();
+        } catch(Exception e) {
+            LOG.error(e.getMessage(), e);
+            throw e;
+        }
+    }
+
+    public Page<RoleEntity> search(PaginationRequestDTO paginationDTO) {
+        try {
+            Pageable pageable = PageRequest.of(paginationDTO.page(), PaginationRules.FETCH_SIZE, Sort.by("id").descending());
+
+            Specification<RoleEntity> specification = (root, query, builder) -> {
+                return builder.like(builder.lower(root.get("name")), "%" + paginationDTO.search().toLowerCase()  + "%");
+            };
+
+            return repository.findAll(specification, pageable);
         } catch(Exception e) {
             LOG.error(e.getMessage(), e);
             throw e;

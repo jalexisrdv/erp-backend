@@ -24,14 +24,6 @@ public class RoleEntity {
     )
     private List<PermissionEntity> permissions;
 
-    public static RoleEntity withId(Long id) {
-        RoleEntity entity = new RoleEntity();
-
-        entity.setId(id);
-
-        return entity;
-    }
-
     public static RoleEntity create(Long id, String name) {
         RoleEntity entity = new RoleEntity();
 
@@ -39,6 +31,18 @@ public class RoleEntity {
         entity.setName(name);
 
         return entity;
+    }
+
+    public void update(String name) {
+        this.name = name;
+    }
+
+    public void assignPermissions(List<Long> permissionIds) {
+        List<PermissionEntity> permissions = permissionIds.stream()
+                .map(PermissionEntity::withId)
+                .toList();
+
+        this.permissions = permissions;
     }
 
     public Long getId() {
