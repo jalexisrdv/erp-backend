@@ -17,7 +17,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Entity
-@Table(name = "report_assignments")
+@Table(name = "checklist_assignments")
 public final class AssignmentEntity {
 
     @Id

@@ -11,7 +11,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Entity
-@Table(name = "report_templates")
+@Table(name = "checklist_templates")
 public final class TemplateEntity {
 
     @Id

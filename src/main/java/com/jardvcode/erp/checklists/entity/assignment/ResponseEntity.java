@@ -7,7 +7,7 @@ import com.jardvcode.erp.checklists.exception.assignment.response.CommentRequire
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "report_responses")
+@Table(name = "checklist_responses")
 public final class ResponseEntity {
 
     @Id

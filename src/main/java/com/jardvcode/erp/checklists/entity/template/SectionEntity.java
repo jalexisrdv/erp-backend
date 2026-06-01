@@ -7,7 +7,7 @@ import java.util.Set;
 import java.util.UUID;
 
 @Entity
-@Table(name = "report_sections")
+@Table(name = "checklist_sections")
 public final class SectionEntity {
 
     @Id

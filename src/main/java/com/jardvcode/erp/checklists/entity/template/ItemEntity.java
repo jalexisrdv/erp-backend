@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 import java.util.UUID;
 
 @Entity
-@Table(name = "report_items")
+@Table(name = "checklist_items")
 public final class ItemEntity {
 
     @Id

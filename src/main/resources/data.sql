@@ -7,9 +7,9 @@ INSERT INTO app_modules (code, name, parent_id) VALUES ('INVENTORY_CATEGORIES', 
 INSERT INTO app_modules (code, name, parent_id) VALUES ('INVENTORY_ITEMS', 'Artículos', (SELECT id FROM app_modules WHERE code = 'INVENTORY'));
 INSERT INTO app_modules (code, name, parent_id) VALUES ('INVENTORY_MOVEMENTS', 'Movimientos', (SELECT id FROM app_modules WHERE code = 'INVENTORY'));
 
-INSERT INTO app_modules (code, name, parent_id) VALUES ('REPORTS', 'Reportes de Inspección', NULL);
-INSERT INTO app_modules (code, name, parent_id) VALUES ('REPORT_TEMPLATES', 'Plantillas', (SELECT id FROM app_modules WHERE code = 'REPORTS'));
-INSERT INTO app_modules (code, name, parent_id) VALUES ('REPORT_ASSIGNMENTS', 'Asignaciones', (SELECT id FROM app_modules WHERE code = 'REPORTS'));
+INSERT INTO app_modules (code, name, parent_id) VALUES ('CHECKLISTS', 'Listas de Verificación', NULL);
+INSERT INTO app_modules (code, name, parent_id) VALUES ('CHECKLIST_TEMPLATES', 'Plantillas', (SELECT id FROM app_modules WHERE code = 'CHECKLISTS'));
+INSERT INTO app_modules (code, name, parent_id) VALUES ('CHECKLIST_ASSIGNMENTS', 'Asignaciones', (SELECT id FROM app_modules WHERE code = 'CHECKLISTS'));
 
 INSERT INTO permissions (module_id, code, name, description) VALUES ((SELECT id FROM app_modules WHERE code = 'USERS'), 'USERS_VIEW', 'Ver Usuarios', 'Permite visualizar la lista de usuarios');
 INSERT INTO permissions (module_id, code, name, description) VALUES ((SELECT id FROM app_modules WHERE code = 'USERS'), 'USERS_CREATE', 'Crear Usuarios', 'Permite registrar nuevos usuarios');
@@ -40,19 +40,19 @@ INSERT INTO permissions (module_id, code, name, description) VALUES ((SELECT id 
 INSERT INTO permissions (module_id, code, name, description) VALUES ((SELECT id FROM app_modules WHERE code = 'INVENTORY_MOVEMENTS'), 'INVENTORY_MOVEMENTS_APPROVE', 'Aprobar Movimientos', 'Permite autorizar movimientos de inventario pendientes');
 INSERT INTO permissions (module_id, code, name, description) VALUES ((SELECT id FROM app_modules WHERE code = 'INVENTORY_MOVEMENTS'), 'INVENTORY_MOVEMENTS_REJECT', 'Rechazar Movimientos', 'Permite denegar movimientos de inventario pendientes');
 
-INSERT INTO permissions (module_id, code, name, description) VALUES ((SELECT id FROM app_modules WHERE code = 'REPORT_TEMPLATES'), 'REPORT_TEMPLATES_VIEW', 'Ver Plantillas', 'Permite visualizar el listado de plantillas de reporte');
-INSERT INTO permissions (module_id, code, name, description) VALUES ((SELECT id FROM app_modules WHERE code = 'REPORT_TEMPLATES'), 'REPORT_TEMPLATES_CREATE', 'Crear Plantillas', 'Permite registrar nuevas plantillas de inspección');
-INSERT INTO permissions (module_id, code, name, description) VALUES ((SELECT id FROM app_modules WHERE code = 'REPORT_TEMPLATES'), 'REPORT_TEMPLATES_EDIT', 'Editar Plantillas', 'Permite modificar la información general de las plantillas');
-INSERT INTO permissions (module_id, code, name, description) VALUES ((SELECT id FROM app_modules WHERE code = 'REPORT_TEMPLATES'), 'REPORT_TEMPLATES_DELETE', 'Eliminar Plantillas', 'Permite borrar plantillas');
-INSERT INTO permissions (module_id, code, name, description) VALUES ((SELECT id FROM app_modules WHERE code = 'REPORT_TEMPLATES'), 'REPORT_TEMPLATES_CONFIG', 'Configurar Plantillas', 'Permite configurar plantillas');
-INSERT INTO permissions (module_id, code, name, description) VALUES ((SELECT id FROM app_modules WHERE code = 'REPORT_TEMPLATES'), 'REPORT_TEMPLATES_PREVIEW', 'Previsualizar Plantilla', 'Permite ver una vista previa del formato final de la plantilla');
+INSERT INTO permissions (module_id, code, name, description) VALUES ((SELECT id FROM app_modules WHERE code = 'CHECKLIST_TEMPLATES'), 'CHECKLIST_TEMPLATES_VIEW', 'Ver Plantillas', 'Permite visualizar el listado de plantillas de reporte');
+INSERT INTO permissions (module_id, code, name, description) VALUES ((SELECT id FROM app_modules WHERE code = 'CHECKLIST_TEMPLATES'), 'CHECKLIST_TEMPLATES_CREATE', 'Crear Plantillas', 'Permite registrar nuevas plantillas de inspección');
+INSERT INTO permissions (module_id, code, name, description) VALUES ((SELECT id FROM app_modules WHERE code = 'CHECKLIST_TEMPLATES'), 'CHECKLIST_TEMPLATES_EDIT', 'Editar Plantillas', 'Permite modificar la información general de las plantillas');
+INSERT INTO permissions (module_id, code, name, description) VALUES ((SELECT id FROM app_modules WHERE code = 'CHECKLIST_TEMPLATES'), 'CHECKLIST_TEMPLATES_DELETE', 'Eliminar Plantillas', 'Permite borrar plantillas');
+INSERT INTO permissions (module_id, code, name, description) VALUES ((SELECT id FROM app_modules WHERE code = 'CHECKLIST_TEMPLATES'), 'CHECKLIST_TEMPLATES_CONFIG', 'Configurar Plantillas', 'Permite configurar plantillas');
+INSERT INTO permissions (module_id, code, name, description) VALUES ((SELECT id FROM app_modules WHERE code = 'CHECKLIST_TEMPLATES'), 'CHECKLIST_TEMPLATES_PREVIEW', 'Previsualizar Plantilla', 'Permite ver una vista previa del formato final de la plantilla');
 
-INSERT INTO permissions (module_id, code, name, description) VALUES ((SELECT id FROM app_modules WHERE code = 'REPORT_ASSIGNMENTS'), 'REPORT_ASSIGNMENTS_VIEW', 'Ver Asignaciones', 'Permite visualizar la lista de asignaciones de reportes');
-INSERT INTO permissions (module_id, code, name, description) VALUES ((SELECT id FROM app_modules WHERE code = 'REPORT_ASSIGNMENTS'), 'REPORT_ASSIGNMENTS_CREATE', 'Crear Asignación', 'Permite asignar plantillas de inspección a usuarios');
-INSERT INTO permissions (module_id, code, name, description) VALUES ((SELECT id FROM app_modules WHERE code = 'REPORT_ASSIGNMENTS'), 'REPORT_ASSIGNMENTS_EDIT', 'Editar Asignación', 'Permite modificar los detalles de una asignación existente');
-INSERT INTO permissions (module_id, code, name, description) VALUES ((SELECT id FROM app_modules WHERE code = 'REPORT_ASSIGNMENTS'), 'REPORT_ASSIGNMENTS_DELETE', 'Eliminar Asignación', 'Permite borrar asignaciones');
-INSERT INTO permissions (module_id, code, name, description) VALUES ((SELECT id FROM app_modules WHERE code = 'REPORT_ASSIGNMENTS'), 'REPORT_ASSIGNMENTS_FILL_REPORT', 'Responder Reporte Asignado', 'Permite completar y enviar la información del reporte asignado');
-INSERT INTO permissions (module_id, code, name, description) VALUES ((SELECT id FROM app_modules WHERE code = 'REPORT_ASSIGNMENTS'), 'REPORT_ASSIGNMENTS_PREVIEW', 'Previsualizar Reporte Asignado', 'Permite visualizar el reporte finalizado antes o después de ser enviado');
+INSERT INTO permissions (module_id, code, name, description) VALUES ((SELECT id FROM app_modules WHERE code = 'CHECKLIST_ASSIGNMENTS'), 'CHECKLIST_ASSIGNMENTS_VIEW', 'Ver Asignaciones', 'Permite visualizar la lista de asignaciones de reportes');
+INSERT INTO permissions (module_id, code, name, description) VALUES ((SELECT id FROM app_modules WHERE code = 'CHECKLIST_ASSIGNMENTS'), 'CHECKLIST_ASSIGNMENTS_CREATE', 'Crear Asignación', 'Permite asignar plantillas de inspección a usuarios');
+INSERT INTO permissions (module_id, code, name, description) VALUES ((SELECT id FROM app_modules WHERE code = 'CHECKLIST_ASSIGNMENTS'), 'CHECKLIST_ASSIGNMENTS_EDIT', 'Editar Asignación', 'Permite modificar los detalles de una asignación existente');
+INSERT INTO permissions (module_id, code, name, description) VALUES ((SELECT id FROM app_modules WHERE code = 'CHECKLIST_ASSIGNMENTS'), 'CHECKLIST_ASSIGNMENTS_DELETE', 'Eliminar Asignación', 'Permite borrar asignaciones');
+INSERT INTO permissions (module_id, code, name, description) VALUES ((SELECT id FROM app_modules WHERE code = 'CHECKLIST_ASSIGNMENTS'), 'CHECKLIST_ASSIGNMENTS_FILL_REPORT', 'Responder Reporte Asignado', 'Permite completar y enviar la información del reporte asignado');
+INSERT INTO permissions (module_id, code, name, description) VALUES ((SELECT id FROM app_modules WHERE code = 'CHECKLIST_ASSIGNMENTS'), 'CHECKLIST_ASSIGNMENTS_PREVIEW', 'Previsualizar Reporte Asignado', 'Permite visualizar el reporte finalizado antes o después de ser enviado');
 
 INSERT INTO roles (id, name) VALUES(1, 'ADMIN');
 

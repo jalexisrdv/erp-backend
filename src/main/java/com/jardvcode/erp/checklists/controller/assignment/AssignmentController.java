@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping(value = "reports/assignments")
+@RequestMapping(value = "checklists/assignments")
 public final class AssignmentController {
 
     private final AssigmentCrud crud;

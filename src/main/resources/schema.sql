@@ -8,11 +8,11 @@ DROP TABLE IF EXISTS app_modules CASCADE;
 DROP TABLE IF EXISTS permissions CASCADE;
 DROP TABLE IF EXISTS roles CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
-DROP TABLE IF EXISTS report_responses CASCADE;
-DROP TABLE IF EXISTS report_assignments CASCADE;
-DROP TABLE IF EXISTS report_items CASCADE;
-DROP TABLE IF EXISTS report_sections CASCADE;
-DROP TABLE IF EXISTS report_templates CASCADE;
+DROP TABLE IF EXISTS checklist_responses CASCADE;
+DROP TABLE IF EXISTS checklist_assignments CASCADE;
+DROP TABLE IF EXISTS checklist_items CASCADE;
+DROP TABLE IF EXISTS checklist_sections CASCADE;
+DROP TABLE IF EXISTS checklist_templates CASCADE;
 
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
@@ -179,53 +179,53 @@ CREATE TABLE inventory_movements (
         REFERENCES users(id)
 );
 
-CREATE TABLE report_templates (
+CREATE TABLE checklist_templates (
     id SERIAL PRIMARY KEY,
     name VARCHAR(1000) NOT NULL,
 
-    CONSTRAINT uq_report_templates_name
+    CONSTRAINT uq_checklist_templates_name
         UNIQUE (name)
 );
 
-CREATE TABLE report_sections (
+CREATE TABLE checklist_sections (
     id SERIAL PRIMARY KEY,
     uuid UUID DEFAULT gen_random_uuid() NOT NULL,
     template_id INT NOT NULL,
     name VARCHAR(1000) NOT NULL,
     position INT NOT NULL,
 
-    CONSTRAINT uq_report_sections_uuid
+    CONSTRAINT uq_checklist_sections_uuid
         UNIQUE (uuid),
 
-    CONSTRAINT uq_report_sections_template_id_name
+    CONSTRAINT uq_checklist_sections_template_id_name
         UNIQUE (template_id, name),
 
-    CONSTRAINT fk_report_sections_report_templates
+    CONSTRAINT fk_checklist_sections_checklist_templates
         FOREIGN KEY (template_id)
-        REFERENCES report_templates (id)
+        REFERENCES checklist_templates (id)
         ON DELETE CASCADE
 );
 
-CREATE TABLE report_items (
+CREATE TABLE checklist_items (
     id SERIAL PRIMARY KEY,
     uuid UUID DEFAULT gen_random_uuid() NOT NULL,
     section_id INT NOT NULL,
     label TEXT NOT NULL,
     position INT NOT NULL,
 
-    CONSTRAINT uq_report_items_uuid
+    CONSTRAINT uq_checklist_items_uuid
             UNIQUE (uuid),
 
-    CONSTRAINT uq_report_items_section_id_label
+    CONSTRAINT uq_checklist_items_section_id_label
         UNIQUE (section_id, label),
 
-    CONSTRAINT fk_report_items_report_sections
+    CONSTRAINT fk_checklist_items_checklist_sections
         FOREIGN KEY (section_id)
-        REFERENCES report_sections (id)
+        REFERENCES checklist_sections (id)
         ON DELETE CASCADE
 );
 
-CREATE TABLE report_assignments (
+CREATE TABLE checklist_assignments (
     id SERIAL PRIMARY KEY,
     template_id INT NOT NULL,
     unit_number INT NOT NULL,
@@ -238,30 +238,30 @@ CREATE TABLE report_assignments (
     date DATE NOT NULL DEFAULT CURRENT_DATE,
     status VARCHAR(150) DEFAULT 'PENDIENTE',
 
-    CONSTRAINT fk_report_assignments_report_templates
+    CONSTRAINT fk_checklist_assignments_checklist_templates
         FOREIGN KEY (template_id)
-        REFERENCES report_templates (id)
+        REFERENCES checklist_templates (id)
         ON DELETE CASCADE,
 
-    CONSTRAINT fk_report_assignments_users_operator_user_id
+    CONSTRAINT fk_checklist_assignments_users_operator_user_id
         FOREIGN KEY (operator_user_id)
         REFERENCES users (id)
         ON DELETE CASCADE,
 
-    CONSTRAINT fk_report_assignments_users_mechanic_user_id
+    CONSTRAINT fk_checklist_assignments_users_mechanic_user_id
         FOREIGN KEY (mechanic_user_id)
         REFERENCES users (id)
         ON DELETE CASCADE
 );
 
-CREATE TABLE report_responses (
+CREATE TABLE checklist_responses (
     id SERIAL PRIMARY KEY,
     assignment_id INT NOT NULL,
     item_id INT NOT NULL,
     status VARCHAR(3) NULL CHECK (status IN ('F', 'OK', 'R')),
     comment TEXT NULL,
     
-    CONSTRAINT ck_report_responses_comment_when_not_ok
+    CONSTRAINT ck_checklist_responses_comment_when_not_ok
         CHECK (
             (status IS NULL)
             OR
@@ -270,13 +270,13 @@ CREATE TABLE report_responses (
             (status IN ('F', 'R') AND comment IS NOT NULL)
         ),
     
-    CONSTRAINT fk_report_responses_report_assignments
+    CONSTRAINT fk_checklist_responses_checklist_assignments
         FOREIGN KEY (assignment_id)
-        REFERENCES report_assignments (id)
+        REFERENCES checklist_assignments (id)
         ON DELETE CASCADE,
     
-    CONSTRAINT fk_report_responses_report_items
+    CONSTRAINT fk_checklist_responses_checklist_items
         FOREIGN KEY (item_id)
-        REFERENCES report_items (id)
+        REFERENCES checklist_items (id)
         ON DELETE CASCADE
 );

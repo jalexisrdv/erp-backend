@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping(value = "reports/templates")
+@RequestMapping(value = "checklists/templates")
 public final class TemplateController {
 
     private final TemplateCrud crud;
