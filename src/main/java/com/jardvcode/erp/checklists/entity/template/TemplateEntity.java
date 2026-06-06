@@ -34,18 +34,6 @@ public final class TemplateEntity {
         return entity;
     }
 
-    public static TemplateEntity create(Long id, Set<SectionEntity> sections) {
-        TemplateEntity entity = new TemplateEntity();
-        entity.id = id;
-        entity.sections = sections;
-
-        entity.sections.forEach(section -> {
-            section.setTemplate(entity);
-        });
-
-        return entity;
-    }
-
     public void update(String name) {
         this.name = name;
     }

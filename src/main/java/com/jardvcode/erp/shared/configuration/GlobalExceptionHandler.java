@@ -28,6 +28,8 @@ public class GlobalExceptionHandler {
 
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<?> handleException(Exception e) {
+		e.printStackTrace();
+
 		return ResponseWrapper.internalServerError(UnexpectedException.MESSAGE);
 	}
 
@@ -36,6 +38,8 @@ public class GlobalExceptionHandler {
 		Throwable cause = e.getCause();
 
 		if (cause instanceof UnrecognizedPropertyException ex) {
+			ex.printStackTrace();
+
 			String message = String.format(
 					"Campo '%s' desconocido, envía únicamente los campos definidos en la API.",
 					ex.getPropertyName()

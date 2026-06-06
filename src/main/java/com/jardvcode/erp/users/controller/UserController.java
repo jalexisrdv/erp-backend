@@ -7,7 +7,6 @@ import com.jardvcode.erp.users.dto.RoleDTO;
 import com.jardvcode.erp.users.dto.UserCatalogDTO;
 import com.jardvcode.erp.users.dto.UserDTO;
 import com.jardvcode.erp.users.service.UserCrud;
-import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,7 +28,7 @@ public final class UserController {
     }
 
     @GetMapping
-    public ResponseEntity<ResponseWrapper<ResponsePaginationDTO<UserDTO>>> search(@Valid @RequestParam PaginationRequestDTO dto) {
+    public ResponseEntity<ResponseWrapper<ResponsePaginationDTO<UserDTO>>> search(@ModelAttribute PaginationRequestDTO dto) {
         return ResponseWrapper.ok(ResponsePaginationDTO.create(crud.search(dto), UserDTO::fromEntity));
     }
 

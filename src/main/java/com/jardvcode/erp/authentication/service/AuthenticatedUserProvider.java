@@ -1,7 +1,7 @@
 package com.jardvcode.erp.authentication.service;
 
 import com.jardvcode.erp.authentication.configuration.UserDetailsImpl;
-import com.jardvcode.erp.shared.domain.Roles;
+import com.jardvcode.erp.authentication.domain.Roles;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 

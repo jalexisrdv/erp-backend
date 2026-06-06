@@ -36,21 +36,6 @@ public final class ItemEntity {
         return entity;
     }
 
-    public static ItemEntity create(Long id, String uuid, Long sectionId, String label, Integer position) {
-        SectionEntity section = new SectionEntity();
-        section.setId(sectionId);
-
-        ItemEntity entity = new ItemEntity();
-
-        entity.id = id;
-        entity.uuid = UUID.fromString(uuid);
-        entity.section = section;
-        entity.label = label;
-        entity.position = position;
-
-        return entity;
-    }
-
     public void update(String label) {
         this.setLabel(label);
     }

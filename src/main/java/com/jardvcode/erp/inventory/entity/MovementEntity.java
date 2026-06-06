@@ -92,39 +92,6 @@ public final class MovementEntity {
         return entity;
     }
 
-    public static MovementEntity createApproved(Long id, Long itemId, Long userId) {
-        InventoryEntity item = new InventoryEntity();
-        item.setId(itemId);
-
-        UserEntity user = new UserEntity();
-        user.setId(userId);
-
-        MovementEntity entity = new MovementEntity();
-
-        entity.id = id;
-        entity.item = item;
-        entity.reviewedBy = user;
-
-        return entity;
-    }
-
-    public static MovementEntity createRejected(Long id, Long itemId, String reason, Long userId) {
-        InventoryEntity item = new InventoryEntity();
-        item.setId(itemId);
-
-        UserEntity user = new UserEntity();
-        user.setId(userId);
-
-        MovementEntity entity = new MovementEntity();
-
-        entity.id = id;
-        entity.item = item;
-        entity.reviewedBy = user;
-        entity.rejectReason = reason;
-
-        return entity;
-    }
-
     public void updateEntry(Long quantity, String invoiceUrl, Long userId) {
         if(status != StatusEnum.PENDIENTE) {
             throw new StatusAlreadyReviewedException();

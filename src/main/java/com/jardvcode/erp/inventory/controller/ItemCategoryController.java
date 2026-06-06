@@ -5,7 +5,6 @@ import com.jardvcode.erp.inventory.service.ItemCategoryCrud;
 import com.jardvcode.erp.shared.domain.ResponseWrapper;
 import com.jardvcode.erp.shared.dto.pagination.PaginationRequestDTO;
 import com.jardvcode.erp.shared.dto.pagination.ResponsePaginationDTO;
-import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -43,7 +42,7 @@ public final class ItemCategoryController {
     }
 
     @GetMapping
-    public ResponseEntity<ResponseWrapper<ResponsePaginationDTO<ItemCategoryDTO>>> search(@Valid @RequestParam PaginationRequestDTO dto) {
+    public ResponseEntity<ResponseWrapper<ResponsePaginationDTO<ItemCategoryDTO>>> search(@ModelAttribute PaginationRequestDTO dto) {
         return ResponseWrapper.ok(ResponsePaginationDTO.create(crud.search(dto), ItemCategoryDTO::fromEntity));
     }
 

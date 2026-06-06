@@ -7,7 +7,6 @@ import com.jardvcode.erp.checklists.service.assignment.AssigmentCrud;
 import com.jardvcode.erp.shared.domain.ResponseWrapper;
 import com.jardvcode.erp.shared.dto.pagination.PaginationRequestDTO;
 import com.jardvcode.erp.shared.dto.pagination.ResponsePaginationDTO;
-import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,7 +28,7 @@ public final class AssignmentController {
     }
 
     @GetMapping
-    public ResponseEntity<ResponseWrapper<ResponsePaginationDTO<AssignmentDTO>>> search(@Valid @RequestParam PaginationRequestDTO dto) {
+    public ResponseEntity<ResponseWrapper<ResponsePaginationDTO<AssignmentDTO>>> search(@ModelAttribute PaginationRequestDTO dto) {
         return ResponseWrapper.ok(ResponsePaginationDTO.create(crud.search(dto), AssignmentDTO::fromEntity));
     }
 

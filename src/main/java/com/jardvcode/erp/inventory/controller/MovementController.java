@@ -7,7 +7,6 @@ import com.jardvcode.erp.inventory.service.movement.OutputMovementService;
 import com.jardvcode.erp.shared.domain.ResponseWrapper;
 import com.jardvcode.erp.shared.dto.pagination.PaginationRequestDTO;
 import com.jardvcode.erp.shared.dto.pagination.ResponsePaginationDTO;
-import jakarta.validation.Valid;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -72,7 +71,7 @@ public final class MovementController {
     }
 
     @GetMapping
-    public ResponseEntity<ResponseWrapper<ResponsePaginationDTO<MovementDTO>>> search(@Valid @RequestParam PaginationRequestDTO paginationRequestDTO, @Valid @RequestParam MovementFilterDTO filterDTO) {
+    public ResponseEntity<ResponseWrapper<ResponsePaginationDTO<MovementDTO>>> search(@ModelAttribute PaginationRequestDTO paginationRequestDTO, @ModelAttribute MovementFilterDTO filterDTO) {
         return ResponseWrapper.ok(ResponsePaginationDTO.create(searcher.search(paginationRequestDTO, filterDTO), MovementDTO::fromEntity));
     }
 

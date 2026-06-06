@@ -41,24 +41,6 @@ public final class ResponseEntity {
         return entity;
     }
 
-    public static ResponseEntity create(Long id, Long assignmentId, Long itemId, ResponseStatusEnum status, String comment) {
-        AssignmentEntity assignmentEntity = new AssignmentEntity();
-        assignmentEntity.setId(assignmentId);
-
-        ItemEntity itemEntity = new ItemEntity();
-        itemEntity.setId(itemId);
-
-        ResponseEntity entity = new ResponseEntity();
-
-        entity.id = id;
-        entity.assignment = assignmentEntity;
-        entity.item = itemEntity;
-        entity.status = status;
-        entity.comment = comment;
-
-        return entity;
-    }
-
     public static ResponseEntity create(Long id, ResponseStatusEnum status, String comment) {
         ResponseEntity entity = new ResponseEntity();
 

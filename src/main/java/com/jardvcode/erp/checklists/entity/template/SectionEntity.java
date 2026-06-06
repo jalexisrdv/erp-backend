@@ -49,19 +49,6 @@ public final class SectionEntity {
         return entity;
     }
 
-    public static SectionEntity create(Long id, Long templateId, String name) {
-        TemplateEntity template = new TemplateEntity();
-        template.setId(templateId);
-
-        SectionEntity entity = new SectionEntity();
-
-        entity.setId(id);
-        entity.setTemplate(template);
-        entity.setName(name);
-
-        return entity;
-    }
-
     public void update(String name) {
         this.setName(name);
     }
