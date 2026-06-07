@@ -49,10 +49,10 @@ public class AssigmentCrud {
     public AssignmentEntity create(AssignmentDTO dto) {
         try {
             TemplateEntity template = templateRepository.findWithSectionsAndItemsById(dto.template().id())
-                    .orElseThrow(() -> new TemplateDoesNotExistException(DomainErrorType.DEPENDENCY));
+                    .orElseThrow(() -> new TemplateDoesNotExistException(DomainErrorType.CONFLICT));
 
             if(template.hasEmptySections()) {
-                throw new IncompleteTemplateException(DomainErrorType.DEPENDENCY);
+                throw new IncompleteTemplateException(DomainErrorType.CONFLICT);
             }
 
             AssignmentEntity assignment = AssignmentEntity.create(
@@ -73,7 +73,7 @@ public class AssigmentCrud {
             entityManager.detach(savedAssignment);
 
             return assignmentRepository.findWithTemplateAndOperatorAndMechanicById(assignment.getId())
-                    .orElseThrow(() -> new AssigmentDoesNotExistException(DomainErrorType.DEPENDENCY));
+                    .orElseThrow(() -> new AssigmentDoesNotExistException(DomainErrorType.CONFLICT));
         } catch (DomainError e) {
             LOG.info(e.getMessage(), e);
             throw e;
@@ -86,7 +86,7 @@ public class AssigmentCrud {
     public AssignmentEntity findWithTemplateAndResponsesById(Long id) {
         try {
             return assignmentRepository.findWithTemplateAndResponsesById(id)
-                    .orElseThrow(() -> new AssigmentDoesNotExistException(DomainErrorType.DEPENDENCY));
+                    .orElseThrow(() -> new AssigmentDoesNotExistException(DomainErrorType.CONFLICT));
         } catch (DomainError e) {
             LOG.info(e.getMessage(), e);
             throw e;
@@ -99,7 +99,7 @@ public class AssigmentCrud {
     public AssignmentEntity update(AssignmentDTO dto) {
         try {
             AssignmentEntity foundAssignment = assignmentRepository.findById(dto.id())
-                    .orElseThrow(() -> new AssigmentDoesNotExistException(DomainErrorType.DEPENDENCY));
+                    .orElseThrow(() -> new AssigmentDoesNotExistException(DomainErrorType.CONFLICT));
 
             foundAssignment.update(
                     dto.unitNumber(),
@@ -154,7 +154,7 @@ public class AssigmentCrud {
     public void updateResponses(Long assignmentId, List<ResponseRequestDTO> responseDtos) {
         try {
             AssignmentEntity foundAssignment = assignmentRepository.findWithTemplateAndResponsesById(assignmentId)
-                    .orElseThrow(() -> new AssigmentDoesNotExistException(DomainErrorType.DEPENDENCY));
+                    .orElseThrow(() -> new AssigmentDoesNotExistException(DomainErrorType.CONFLICT));
 
             List<ResponseEntity> incomingResponses = responseDtos.stream()
                             .map(response -> {

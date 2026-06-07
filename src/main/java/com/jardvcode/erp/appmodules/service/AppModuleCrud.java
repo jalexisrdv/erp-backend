@@ -41,7 +41,7 @@ public class AppModuleCrud {
             AppModuleEntity savedAppModule = repository.save(appModule);
 
             return viewRepository.findById(savedAppModule.getId())
-                    .orElseThrow(() -> new AppModuleDoesNotExistException(DomainErrorType.DEPENDENCY));
+                    .orElseThrow(() -> new AppModuleDoesNotExistException(DomainErrorType.CONFLICT));
         } catch(DomainError e) {
             LOG.info(e.getMessage(), e);
             throw e;
@@ -54,7 +54,7 @@ public class AppModuleCrud {
     public AppModuleViewEntity update(ModuleRequestDTO dto) {
         try {
             AppModuleEntity foundAppModule = repository.findById(dto.id())
-                    .orElseThrow(() -> new AppModuleDoesNotExistException(DomainErrorType.DEPENDENCY));
+                    .orElseThrow(() -> new AppModuleDoesNotExistException(DomainErrorType.CONFLICT));
 
             foundAppModule.update(
                     dto.code(),
@@ -63,7 +63,7 @@ public class AppModuleCrud {
             );
 
             return viewRepository.findById(dto.id())
-                    .orElseThrow(() -> new AppModuleDoesNotExistException(DomainErrorType.DEPENDENCY));
+                    .orElseThrow(() -> new AppModuleDoesNotExistException(DomainErrorType.CONFLICT));
         } catch(DomainError e) {
             LOG.info(e.getMessage(), e);
             throw e;

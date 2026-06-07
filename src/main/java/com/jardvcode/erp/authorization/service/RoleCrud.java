@@ -54,7 +54,7 @@ public class RoleCrud {
     public RoleEntity update(RoleDTO dto) {
         try {
             RoleEntity foundRole = repository.findById(dto.id())
-                    .orElseThrow(() -> new RoleDoesNotExistException(DomainErrorType.DEPENDENCY));
+                    .orElseThrow(() -> new RoleDoesNotExistException(DomainErrorType.CONFLICT));
 
             foundRole.update(dto.name());
 
@@ -80,7 +80,7 @@ public class RoleCrud {
     public List<RolePermissionViewEntity> assignPermissions(Long roleId, List<PermissionDTO> dtos) {
         try {
             RoleEntity role = repository.findById(roleId)
-                    .orElseThrow(() -> new RoleDoesNotExistException(DomainErrorType.DEPENDENCY));
+                    .orElseThrow(() -> new RoleDoesNotExistException(DomainErrorType.CONFLICT));
 
             List<Long> permissionIds = dtos.stream().map((permission) -> permission.id()).toList();
             role.assignPermissions(permissionIds);

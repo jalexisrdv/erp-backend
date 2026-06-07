@@ -35,7 +35,7 @@ public final class ReportDataProvider {
     public ReportDTO findByAssignmentId(Long assignmentId) {
         try {
             AssignmentEntity assignment = assigmentRepository.findWithTemplateAndOperatorAndMechanicById(assignmentId)
-                    .orElseThrow(() -> new AssigmentDoesNotExistException(DomainErrorType.DEPENDENCY));
+                    .orElseThrow(() -> new AssigmentDoesNotExistException(DomainErrorType.CONFLICT));
 
             List<ResponseEntity> responses = responseRepository.findWithSectionAndItemByAssignmentIdOrderByItemPosition(assignmentId);
 

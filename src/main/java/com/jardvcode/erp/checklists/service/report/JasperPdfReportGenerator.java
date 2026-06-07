@@ -35,10 +35,10 @@ public final class JasperPdfReportGenerator {
             return JasperExportManager.exportReportToPdf(jasperPrint);
         } catch(JRException  e) {
             LOG.error("Failed to generate checklist report for assignmentId={}", report.assignmentId(), e);
-            throw new ReportGenerationException(DomainErrorType.DEPENDENCY);
+            throw new ReportGenerationException(DomainErrorType.CONFLICT);
         } catch (Exception e) {
             LOG.error("Unexpected error while generating checklist report for assignmentId={}", report.assignmentId(), e);
-            throw new ReportGenerationException(DomainErrorType.DEPENDENCY);
+            throw new ReportGenerationException(DomainErrorType.CONFLICT);
         }
     }
 

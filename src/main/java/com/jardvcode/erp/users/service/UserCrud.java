@@ -47,7 +47,7 @@ public final class UserCrud {
     public UserEntity create(UserDTO dto) {
         try {
             if(repository.findByUsername(dto.username()).isPresent()) {
-                throw new UsernameAlreadyExistsException(DomainErrorType.DEPENDENCY);
+                throw new UsernameAlreadyExistsException(DomainErrorType.CONFLICT);
             }
 
             UserEntity user = UserEntity.create(
@@ -92,7 +92,7 @@ public final class UserCrud {
     public UserEntity update(UserDTO dto) {
         try {
             UserEntity foundUser = repository.findById(dto.id())
-                    .orElseThrow(() -> new UserDoesNotExistException(DomainErrorType.DEPENDENCY));
+                    .orElseThrow(() -> new UserDoesNotExistException(DomainErrorType.CONFLICT));
 
             foundUser.update(
                     dto.firstName(),
@@ -125,7 +125,7 @@ public final class UserCrud {
     public List<RoleEntity> assignRoles(Long id, List<RoleDTO> roleDtos) {
         try {
             UserEntity foundUser = repository.findById(id)
-                    .orElseThrow(() -> new UserDoesNotExistException(DomainErrorType.DEPENDENCY));
+                    .orElseThrow(() -> new UserDoesNotExistException(DomainErrorType.CONFLICT));
 
             Set<RoleEntity> roles = roleDtos.stream()
                             .map(role -> {
@@ -151,7 +151,7 @@ public final class UserCrud {
     public List<RoleEntity> fetchRoles(Long id) {
         try {
             UserEntity user = repository.findById(id)
-                    .orElseThrow(() -> new UserDoesNotExistException(DomainErrorType.DEPENDENCY));
+                    .orElseThrow(() -> new UserDoesNotExistException(DomainErrorType.CONFLICT));
 
             return user.getRoles().stream().toList();
         } catch(DomainError e) {

@@ -26,7 +26,7 @@ public class PasswordService {
 
 	public ResetPasswordDTO reset(ResetPasswordDTO dto) {
 		try {
-			UserEntity entity = repository.findById(dto.userId()).orElseThrow(() -> new UserDoesNotExistException(DomainErrorType.DEPENDENCY));
+			UserEntity entity = repository.findById(dto.userId()).orElseThrow(() -> new UserDoesNotExistException(DomainErrorType.CONFLICT));
 
 			String password = PasswordTokenGenerator.generate();
 

@@ -42,10 +42,10 @@ public class InventoryCrud {
     public InventoryEntity create(InventoryDTO dto) {
         try {
             ItemCategoryEntity foundItemCategory = itemCategoryRepository.findById(dto.category().id())
-                    .orElseThrow(() -> new ItemCategoryDoesNotExistException(DomainErrorType.DEPENDENCY));
+                    .orElseThrow(() -> new ItemCategoryDoesNotExistException(DomainErrorType.CONFLICT));
 
             if(inventoryRepository.findByItemName(dto.name()).isPresent()) {
-                throw new ItemAlreadyExistsException(DomainErrorType.DEPENDENCY);
+                throw new ItemAlreadyExistsException(DomainErrorType.CONFLICT);
             }
 
             InventoryEntity inventory = InventoryEntity.create(
@@ -70,10 +70,10 @@ public class InventoryCrud {
     public InventoryEntity update(InventoryDTO dto) {
         try {
             ItemCategoryEntity foundItemCategory = itemCategoryRepository.findById(dto.category().id())
-                    .orElseThrow(() -> new ItemCategoryDoesNotExistException(DomainErrorType.DEPENDENCY));
+                    .orElseThrow(() -> new ItemCategoryDoesNotExistException(DomainErrorType.CONFLICT));
 
             InventoryEntity foundInventory = inventoryRepository.findById(dto.id())
-                    .orElseThrow(() -> new ItemDoesNotExistException(DomainErrorType.DEPENDENCY));
+                    .orElseThrow(() -> new ItemDoesNotExistException(DomainErrorType.CONFLICT));
 
             foundInventory.update(
                     foundItemCategory,

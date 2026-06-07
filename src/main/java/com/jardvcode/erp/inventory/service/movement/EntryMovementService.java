@@ -46,7 +46,7 @@ public class EntryMovementService {
             MovementEntity.ensureInvoicePdfFormat(invoiceName, invoiceBytes);
 
             inventoryRepository.findById(dto.itemId())
-                    .orElseThrow(() -> new ItemDoesNotExistException(DomainErrorType.DEPENDENCY));
+                    .orElseThrow(() -> new ItemDoesNotExistException(DomainErrorType.CONFLICT));
 
             String invoiceUrl = fileStorage.upload(
                     invoiceBytes,
@@ -70,7 +70,7 @@ public class EntryMovementService {
             entityManager.clear();
 
             return movementRepository.findById(savedMovement.getId())
-                    .orElseThrow(() -> new MovementDoesNotExistException(DomainErrorType.DEPENDENCY));
+                    .orElseThrow(() -> new MovementDoesNotExistException(DomainErrorType.CONFLICT));
         } catch(DomainError e) {
             LOG.info(e.getMessage(), e);
             throw e;
@@ -88,7 +88,7 @@ public class EntryMovementService {
             MovementEntity.ensureInvoicePdfFormat(invoiceName, invoiceBytes);
 
             MovementEntity foundMovement = movementRepository.findById(dto.id())
-                    .orElseThrow(() -> new MovementDoesNotExistException(DomainErrorType.DEPENDENCY));
+                    .orElseThrow(() -> new MovementDoesNotExistException(DomainErrorType.CONFLICT));
 
             String invoiceUrl = fileStorage.upload(
                     invoiceBytes,
@@ -111,7 +111,7 @@ public class EntryMovementService {
             entityManager.clear();
 
             return movementRepository.findById(foundMovement.getId())
-                    .orElseThrow(() -> new MovementDoesNotExistException(DomainErrorType.DEPENDENCY));
+                    .orElseThrow(() -> new MovementDoesNotExistException(DomainErrorType.CONFLICT));
         } catch(DomainError e) {
             LOG.info(e.getMessage(), e);
             throw e;
@@ -124,7 +124,7 @@ public class EntryMovementService {
     public MovementEntity approve(ApproveMovementRequestDTO dto) {
         try {
             MovementEntity foundMovement = movementRepository.findById(dto.id())
-                    .orElseThrow(() -> new MovementDoesNotExistException(DomainErrorType.DEPENDENCY));
+                    .orElseThrow(() -> new MovementDoesNotExistException(DomainErrorType.CONFLICT));
 
             foundMovement.approveEntry(userProvider.getUserId());
 
@@ -138,7 +138,7 @@ public class EntryMovementService {
             entityManager.clear();
 
             return movementRepository.findById(dto.id())
-                    .orElseThrow(() -> new MovementDoesNotExistException(DomainErrorType.DEPENDENCY));
+                    .orElseThrow(() -> new MovementDoesNotExistException(DomainErrorType.CONFLICT));
         } catch(DomainError e) {
             LOG.info(e.getMessage(), e);
             throw e;
@@ -151,7 +151,7 @@ public class EntryMovementService {
     public MovementEntity reject(RejectMovementRequestDTO dto) {
         try {
             MovementEntity foundMovement = movementRepository.findById(dto.id())
-                    .orElseThrow(() -> new MovementDoesNotExistException(DomainErrorType.DEPENDENCY));
+                    .orElseThrow(() -> new MovementDoesNotExistException(DomainErrorType.CONFLICT));
 
             foundMovement.reject(
                     userProvider.getUserId(),
@@ -167,7 +167,7 @@ public class EntryMovementService {
             entityManager.clear();
 
             return movementRepository.findById(dto.id())
-                    .orElseThrow(() -> new MovementDoesNotExistException(DomainErrorType.DEPENDENCY));
+                    .orElseThrow(() -> new MovementDoesNotExistException(DomainErrorType.CONFLICT));
         } catch(DomainError e) {
             LOG.info(e.getMessage(), e);
             throw e;

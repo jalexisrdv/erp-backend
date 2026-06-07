@@ -2,7 +2,7 @@ package com.jardvcode.erp.shared.domain;
 
 public enum DomainErrorType {
     DOMAIN,
-    DEPENDENCY,
+    CONFLICT,
     FORBIDDEN,
     NOT_FOUND
 }

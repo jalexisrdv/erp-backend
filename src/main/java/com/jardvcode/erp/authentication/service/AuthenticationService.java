@@ -63,7 +63,7 @@ public class AuthenticationService {
 		try {
 			RefreshTokenEntity refreshTokenEntity = refreshTokenService.update(refreshToken);
 
-			UserEntity user = repository.findWithRolesAndPermissionsById(refreshTokenEntity.getUserId()).orElseThrow(() -> new UserDoesNotExistException(DomainErrorType.DEPENDENCY));
+			UserEntity user = repository.findWithRolesAndPermissionsById(refreshTokenEntity.getUserId()).orElseThrow(() -> new UserDoesNotExistException(DomainErrorType.CONFLICT));
 
 			UserDetailsImpl details = UserDetailsImpl.create(user);
 

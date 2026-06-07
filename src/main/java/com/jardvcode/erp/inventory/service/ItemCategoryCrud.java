@@ -34,7 +34,7 @@ public final class ItemCategoryCrud {
     public ItemCategoryEntity create(ItemCategoryDTO dto) {
         try {
             if(repository.findByName(dto.name()).isPresent()) {
-                throw new ItemCategoryAlreadyExistsException(DomainErrorType.DEPENDENCY);
+                throw new ItemCategoryAlreadyExistsException(DomainErrorType.CONFLICT);
             }
 
             ItemCategoryEntity itemCategory = ItemCategoryEntity.create(
@@ -81,7 +81,7 @@ public final class ItemCategoryCrud {
 
     public ItemCategoryEntity update(ItemCategoryDTO dto) {
         try {
-            ItemCategoryEntity foundItemCategory = repository.findById(dto.id()).orElseThrow(() -> new ItemCategoryDoesNotExistException(DomainErrorType.DEPENDENCY));
+            ItemCategoryEntity foundItemCategory = repository.findById(dto.id()).orElseThrow(() -> new ItemCategoryDoesNotExistException(DomainErrorType.CONFLICT));
 
             foundItemCategory.update(dto.name());
 

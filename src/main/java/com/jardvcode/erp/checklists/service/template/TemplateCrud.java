@@ -48,7 +48,7 @@ public final class TemplateCrud {
     public TemplateEntity findWithSectionsAndItemsById(Long id) {
         try {
             return repository.findWithSectionsAndItemsById(id)
-                    .orElseThrow(() -> new TemplateDoesNotExistException(DomainErrorType.DEPENDENCY));
+                    .orElseThrow(() -> new TemplateDoesNotExistException(DomainErrorType.CONFLICT));
         } catch(DomainError e) {
             LOG.info(e.getMessage(), e);
             throw e;
@@ -61,7 +61,7 @@ public final class TemplateCrud {
     public TemplateEntity create(TemplateDTO dto) {
         try {
             if(repository.findByName(dto.name()).isPresent()) {
-                throw new TemplateAlreadyExistsException(DomainErrorType.DEPENDENCY);
+                throw new TemplateAlreadyExistsException(DomainErrorType.CONFLICT);
             }
 
             TemplateEntity template = TemplateEntity.create(
@@ -82,7 +82,7 @@ public final class TemplateCrud {
     public TemplateEntity update(TemplateDTO dto) {
         try {
             TemplateEntity foundTemplate = repository.findById(dto.id())
-                    .orElseThrow(() -> new TemplateDoesNotExistException(DomainErrorType.DEPENDENCY));
+                    .orElseThrow(() -> new TemplateDoesNotExistException(DomainErrorType.CONFLICT));
 
             foundTemplate.update(dto.name());
 
@@ -126,7 +126,7 @@ public final class TemplateCrud {
     public void updateStructure(TemplateStructureRequestDTO dto) {
         try {
             TemplateEntity foundTemplate = repository.findById(dto.id())
-                    .orElseThrow(() -> new TemplateDoesNotExistException(DomainErrorType.DEPENDENCY));
+                    .orElseThrow(() -> new TemplateDoesNotExistException(DomainErrorType.CONFLICT));
 
             Set<SectionEntity> sections = dto.sections().stream()
                     .map((section -> {

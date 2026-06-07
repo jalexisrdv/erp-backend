@@ -8,17 +8,17 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-@ControllerAdvice
+@RestControllerAdvice
 public class GlobalExceptionHandler {
 
 	@ExceptionHandler(DomainError.class)
 	public ResponseEntity<?> handleException(DomainError e) {
 		HttpStatusCode httpStatusCode = switch (e.errorType()) {
 			case DOMAIN -> HttpStatus.BAD_REQUEST;
-			case DEPENDENCY -> HttpStatus.CONFLICT;
+			case CONFLICT -> HttpStatus.CONFLICT;
 			case FORBIDDEN -> HttpStatus.FORBIDDEN;
 			case NOT_FOUND -> HttpStatus.NOT_FOUND;
 		};

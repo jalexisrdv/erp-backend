@@ -42,7 +42,7 @@ public class PermissionCrud {
             PermissionEntity savedPermission = repository.save(permission);
 
             return viewRepository.findById(savedPermission.getId())
-                    .orElseThrow(() -> new PermissionDoesNotExistException(DomainErrorType.DEPENDENCY));
+                    .orElseThrow(() -> new PermissionDoesNotExistException(DomainErrorType.CONFLICT));
         } catch(DomainError e) {
             LOG.info(e.getMessage(), e);
             throw e;
@@ -64,7 +64,7 @@ public class PermissionCrud {
     public PermissionViewEntity update(PermissionRequestDTO dto) {
         try {
             PermissionEntity foundPermission = repository.findById(dto.id())
-                    .orElseThrow(() -> new PermissionDoesNotExistException(DomainErrorType.DEPENDENCY));
+                    .orElseThrow(() -> new PermissionDoesNotExistException(DomainErrorType.CONFLICT));
 
             foundPermission.update(
                     dto.moduleId(),
@@ -76,7 +76,7 @@ public class PermissionCrud {
             repository.save(foundPermission);
 
             return viewRepository.findById(dto.id())
-                    .orElseThrow(() -> new PermissionDoesNotExistException(DomainErrorType.DEPENDENCY));
+                    .orElseThrow(() -> new PermissionDoesNotExistException(DomainErrorType.CONFLICT));
         } catch(DomainError e) {
             LOG.info(e.getMessage(), e);
             throw e;
