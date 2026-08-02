@@ -46,7 +46,7 @@ public final class S3FileStorage {
 
             ObjectMetadata metadata = ObjectMetadata.builder()
                     .contentType("application/pdf")
-                    .contentDisposition("attachment; filename=\"" + filename + "\"")
+                    .contentDisposition("inline; filename=\"" + filename + "\"")
                     .build();
 
             String bucketName = s3Properties.getBucketName();
