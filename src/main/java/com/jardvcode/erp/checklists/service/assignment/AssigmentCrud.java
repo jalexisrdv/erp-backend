@@ -111,7 +111,13 @@ public class AssigmentCrud {
                     dto.timeOut()
             );
 
-            return assignmentRepository.save(foundAssignment);
+            AssignmentEntity savedAssignment = assignmentRepository.save(foundAssignment);
+
+            entityManager.flush();
+            entityManager.detach(savedAssignment);
+
+            return assignmentRepository.findWithTemplateAndOperatorAndMechanicById(foundAssignment.getId())
+                    .orElseThrow(() -> new AssigmentDoesNotExistException(DomainErrorType.CONFLICT));
         } catch (DomainError e) {
             LOG.info(e.getMessage(), e);
             throw e;
