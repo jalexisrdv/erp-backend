@@ -12,14 +12,14 @@ public interface AssignmentSectionRepository extends JpaRepository<AssignmentSec
     @Modifying
     @Transactional
     @Query(nativeQuery = true, value = """
-            INSERT INTO assignment_sections(section_id, uuid, assignment_id, name, position)
+            INSERT INTO assignment_sections(section_id, uuid, assignment_id, name, position, status)
             SELECT
-                templateSections.id, templateSections.uuid, :assignmentId, templateSections.name, templateSections.position
+                templateSections.id, templateSections.uuid, :assignmentId, templateSections.name, templateSections.position, :status
             FROM
                 checklist_sections templateSections
             WHERE
                 templateSections.template_id = :templateId
             """)
-    void snapshot(Long templateId, Long assignmentId);
+    void snapshot(Long templateId, Long assignmentId, String status);
 
 }

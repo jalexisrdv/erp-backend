@@ -1,5 +1,6 @@
 package com.jardvcode.erp.checklists.service.assignment;
 
+import com.jardvcode.erp.checklists.domain.SectionStatusEnum;
 import com.jardvcode.erp.checklists.repository.assignment.AssignmentItemRepository;
 import com.jardvcode.erp.checklists.repository.assignment.AssignmentResponseRepository;
 import com.jardvcode.erp.checklists.repository.assignment.AssignmentSectionRepository;
@@ -21,7 +22,7 @@ public class ChecklistAssignmentInitializer {
     }
 
     public void initialize(Long templateId, Long assignmentId) {
-        sectionRepository.snapshot(templateId, assignmentId);
+        sectionRepository.snapshot(templateId, assignmentId, SectionStatusEnum.PENDING.toString());
         itemRepository.snapshot(templateId, assignmentId);
         responseRepository.createDefaultResponsesFromItems(assignmentId);
     }

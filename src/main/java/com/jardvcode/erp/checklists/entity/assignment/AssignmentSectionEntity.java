@@ -1,5 +1,6 @@
 package com.jardvcode.erp.checklists.entity.assignment;
 
+import com.jardvcode.erp.checklists.domain.SectionStatusEnum;
 import jakarta.persistence.*;
 
 import java.util.HashSet;
@@ -30,6 +31,10 @@ public final class AssignmentSectionEntity {
 
     @Column(name = "position")
     private Integer position;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    private SectionStatusEnum status = SectionStatusEnum.PENDING;
 
     public Long getId() {
         return id;
@@ -77,6 +82,14 @@ public final class AssignmentSectionEntity {
 
     public void setPosition(Integer position) {
         this.position = position;
+    }
+
+    public SectionStatusEnum getStatus() {
+        return status;
+    }
+
+    public void setStatus(SectionStatusEnum status) {
+        this.status = status;
     }
 
 }
