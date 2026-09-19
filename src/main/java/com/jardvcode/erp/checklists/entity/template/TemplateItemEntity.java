@@ -6,7 +6,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "checklist_items")
-public final class ItemEntity {
+public final class TemplateItemEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -17,7 +17,7 @@ public final class ItemEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "section_id")
-    private SectionEntity section;
+    private TemplateSectionEntity section;
 
     @Column(name = "label")
     private String label;
@@ -25,8 +25,8 @@ public final class ItemEntity {
     @Column(name = "position")
     private Integer position;
 
-    public static ItemEntity create(Long id, String uuid, String label, Integer position) {
-        ItemEntity entity = new ItemEntity();
+    public static TemplateItemEntity create(Long id, String uuid, String label, Integer position) {
+        TemplateItemEntity entity = new TemplateItemEntity();
 
         entity.id = id;
         entity.uuid = UUID.fromString(uuid);
@@ -56,11 +56,11 @@ public final class ItemEntity {
         this.uuid = uuid;
     }
 
-    public SectionEntity getSection() {
+    public TemplateSectionEntity getSection() {
         return section;
     }
 
-    public void setSection(SectionEntity section) {
+    public void setSection(TemplateSectionEntity section) {
         this.section = section;
     }
 

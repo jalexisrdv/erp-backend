@@ -1,11 +1,8 @@
 package com.jardvcode.erp.checklists.entity.assignment;
 
 import com.jardvcode.erp.checklists.domain.AssignmentStatusEnum;
-import com.jardvcode.erp.checklists.entity.template.SectionEntity;
-import com.jardvcode.erp.checklists.entity.template.TemplateEntity;
 import com.jardvcode.erp.checklists.exception.assignment.LocalTimeParseException;
 import com.jardvcode.erp.checklists.exception.assignment.response.ResponseDoNotExistException;
-import com.jardvcode.erp.users.entity.UserEntity;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
@@ -24,20 +21,26 @@ public final class AssignmentEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "template_id")
-    private TemplateEntity template;
+    @Column(name = "template_id")
+    private Long templateId;
+
+    @Column(name = "template_name")
+    private String templateName;
 
     @Column(name = "unit_number")
     private Integer unitNumber;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "operator_user_id")
-    private UserEntity operator;
+    @Column(name = "operator_user_id")
+    private Long operatorUserId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "mechanic_user_id")
-    private UserEntity mechanic;
+    @Column(name = "operator_full_name")
+    private String operatorFullName;
+
+    @Column(name = "mechanic_user_id")
+    private Long mechanicUserId;
+
+    @Column(name = "mechanic_full_name")
+    private String mechanicFullName;
 
     @Column(name = "mileage")
     private String mileage;
@@ -59,9 +62,9 @@ public final class AssignmentEntity {
     private AssignmentStatusEnum status = AssignmentStatusEnum.PENDIENTE;
 
     @OneToMany(mappedBy = "assignment", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private Set<ResponseEntity> responses = new HashSet<>();
+    private Set<AssignmentResponseEntity> responses = new HashSet<>();
 
-    public static AssignmentEntity create(Long id, TemplateEntity template, Integer unitNumber, Long operatorUserId, Long mechanicUserId, String mileage, String nextService, String timeIn, String timeOut) {
+    public static AssignmentEntity create(Long id, Long templateId, String templateName, Integer unitNumber, Long operatorUserId, String operatorFullName, Long mechanicUserId, String mechanicFullName, String mileage, String nextService, String timeIn, String timeOut) {
         LocalTime localTimeIn = null;
         LocalTime localTimeOut = null;
 
@@ -77,38 +80,27 @@ public final class AssignmentEntity {
             throw new LocalTimeParseException(timeOut);
         }
 
-        UserEntity operator = new UserEntity();
-        operator.setId(operatorUserId);
-
-        UserEntity mechanic = new UserEntity();
-        mechanic.setId(mechanicUserId);
-
         AssignmentEntity entity = new AssignmentEntity();
 
         entity.id = id;
-        entity.template = template;
+        entity.templateId = templateId;
+        entity.templateName = templateName;
         entity.unitNumber = unitNumber;
-        entity.operator = operator;
-        entity.mechanic = mechanic;
+        entity.operatorUserId = operatorUserId;
+        entity.operatorFullName = operatorFullName;
+        entity.mechanicUserId = mechanicUserId;
+        entity.mechanicFullName = mechanicFullName;
         entity.mileage = mileage;
         entity.nextService = nextService;
         entity.timeIn = localTimeIn;
         entity.timeOut = localTimeOut;
         entity.date = LocalDate.now();
         entity.status = AssignmentStatusEnum.PENDIENTE;
-        entity.responses = entity.createDefaultResponsesFrom(template.getSections());
 
         return entity;
     }
 
-    private Set<ResponseEntity> createDefaultResponsesFrom(Set<SectionEntity> sections) {
-        return sections.stream()
-                .flatMap(section -> section.getItems().stream())
-                .map(item -> ResponseEntity.createDefaultResponse(this, item.getId()))
-                .collect(Collectors.toSet());
-    }
-
-    public void update(Integer unitNumber, Long operatorUserId, Long mechanicUserId, String mileage, String nextService, String timeIn, String timeOut) {
+    public void update(Integer unitNumber, String operatorFullName, String mechanicFullName, String mileage, String nextService, String timeIn, String timeOut) {
         LocalTime localTimeIn = null;
         LocalTime localTimeOut = null;
 
@@ -124,27 +116,21 @@ public final class AssignmentEntity {
             throw new LocalTimeParseException(timeOut);
         }
 
-        UserEntity operator = new UserEntity();
-        operator.setId(operatorUserId);
-
-        UserEntity mechanic = new UserEntity();
-        mechanic.setId(mechanicUserId);
-
         this.unitNumber = unitNumber;
-        this.operator = operator;
-        this.mechanic = mechanic;
+        this.operatorFullName = operatorFullName;
+        this.mechanicFullName = mechanicFullName;
         this.mileage = mileage;
         this.nextService = nextService;
         this.timeIn = localTimeIn;
         this.timeOut = localTimeOut;
     }
 
-    public void updateResponses(List<ResponseEntity> incomingResponses) {
-        Map<Long, ResponseEntity> responsesById = responses.stream()
-                .collect(Collectors.toMap(ResponseEntity::getId, response -> response));
+    public void updateResponses(List<AssignmentResponseEntity> incomingResponses) {
+        Map<Long, AssignmentResponseEntity> responsesById = responses.stream()
+                .collect(Collectors.toMap(AssignmentResponseEntity::getId, response -> response));
 
         incomingResponses.forEach(response -> {
-            ResponseEntity foundResponse = responsesById.get(response.getId());
+            AssignmentResponseEntity foundResponse = responsesById.get(response.getId());
 
             if (foundResponse == null) {
                 throw new ResponseDoNotExistException();
@@ -157,7 +143,7 @@ public final class AssignmentEntity {
     }
 
     public AssignmentStatusEnum determineStatus() {
-        boolean allResponsesAnswered = responses.stream().allMatch(ResponseEntity::isAnswered);
+        boolean allResponsesAnswered = responses.stream().allMatch(AssignmentResponseEntity::isAnswered);
         return allResponsesAnswered ? AssignmentStatusEnum.COMPLETADO : AssignmentStatusEnum.PENDIENTE;
     }
 
@@ -169,12 +155,20 @@ public final class AssignmentEntity {
         this.id = id;
     }
 
-    public TemplateEntity getTemplate() {
-        return template;
+    public Long getTemplateId() {
+        return templateId;
     }
 
-    public void setTemplate(TemplateEntity template) {
-        this.template = template;
+    public void setTemplateId(Long templateId) {
+        this.templateId = templateId;
+    }
+
+    public String getTemplateName() {
+        return templateName;
+    }
+
+    public void setTemplateName(String templateName) {
+        this.templateName = templateName;
     }
 
     public Integer getUnitNumber() {
@@ -185,20 +179,36 @@ public final class AssignmentEntity {
         this.unitNumber = unitNumber;
     }
 
-    public UserEntity getOperator() {
-        return operator;
+    public Long getOperatorUserId() {
+        return operatorUserId;
     }
 
-    public void setOperator(UserEntity operator) {
-        this.operator = operator;
+    public void setOperatorUserId(Long operatorUserId) {
+        this.operatorUserId = operatorUserId;
     }
 
-    public UserEntity getMechanic() {
-        return mechanic;
+    public String getOperatorFullName() {
+        return operatorFullName;
     }
 
-    public void setMechanic(UserEntity mechanic) {
-        this.mechanic = mechanic;
+    public void setOperatorFullName(String operatorFullName) {
+        this.operatorFullName = operatorFullName;
+    }
+
+    public Long getMechanicUserId() {
+        return mechanicUserId;
+    }
+
+    public void setMechanicUserId(Long mechanicUserId) {
+        this.mechanicUserId = mechanicUserId;
+    }
+
+    public String getMechanicFullName() {
+        return mechanicFullName;
+    }
+
+    public void setMechanicFullName(String mechanicFullName) {
+        this.mechanicFullName = mechanicFullName;
     }
 
     public String getMileage() {
@@ -249,11 +259,12 @@ public final class AssignmentEntity {
         this.status = status;
     }
 
-    public Set<ResponseEntity> getResponses() {
+    public Set<AssignmentResponseEntity> getResponses() {
         return responses;
     }
 
-    public void setResponses(Set<ResponseEntity> responses) {
+    public void setResponses(Set<AssignmentResponseEntity> responses) {
         this.responses = responses;
     }
+
 }

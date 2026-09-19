@@ -1,6 +1,6 @@
 package com.jardvcode.erp.checklists.dto.template;
 
-import com.jardvcode.erp.checklists.entity.template.ItemEntity;
+import com.jardvcode.erp.checklists.entity.template.TemplateItemEntity;
 
 import java.util.List;
 import java.util.Set;
@@ -13,7 +13,7 @@ public record ItemDTO(
         Integer position
 ) {
 
-    public static ItemDTO fromEntity(ItemEntity entity) {
+    public static ItemDTO fromEntity(TemplateItemEntity entity) {
         return new ItemDTO(
                 entity.getId(),
                 entity.getUuid().toString(),
@@ -23,7 +23,7 @@ public record ItemDTO(
         );
     }
 
-    public static List<ItemDTO> fromEntities(Set<ItemEntity> entities) {
+    public static List<ItemDTO> fromEntities(Set<TemplateItemEntity> entities) {
         return entities.stream()
                 .map(ItemDTO::fromEntity)
                 .toList();

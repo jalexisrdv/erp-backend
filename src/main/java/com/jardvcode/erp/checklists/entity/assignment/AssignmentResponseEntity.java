@@ -1,14 +1,12 @@
 package com.jardvcode.erp.checklists.entity.assignment;
 
 import com.jardvcode.erp.checklists.domain.ResponseStatusEnum;
-import com.jardvcode.erp.checklists.entity.template.ItemEntity;
-import com.jardvcode.erp.checklists.entity.template.SectionEntity;
 import com.jardvcode.erp.checklists.exception.assignment.response.CommentRequiredException;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "checklist_responses")
-public final class ResponseEntity {
+@Table(name = "assignment_responses")
+public final class AssignmentResponseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,7 +18,7 @@ public final class ResponseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "item_id")
-    private ItemEntity item;
+    private AssignmentItemEntity item;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
@@ -29,20 +27,8 @@ public final class ResponseEntity {
     @Column(name = "comment")
     private String comment;
 
-    public static ResponseEntity createDefaultResponse(AssignmentEntity assignment, Long itemId) {
-        ItemEntity item = new ItemEntity();
-        item.setId(itemId);
-
-        ResponseEntity entity = new ResponseEntity();
-
-        entity.assignment = assignment;
-        entity.item = item;
-
-        return entity;
-    }
-
-    public static ResponseEntity create(Long id, ResponseStatusEnum status, String comment) {
-        ResponseEntity entity = new ResponseEntity();
+    public static AssignmentResponseEntity create(Long id, ResponseStatusEnum status, String comment) {
+        AssignmentResponseEntity entity = new AssignmentResponseEntity();
 
         entity.id = id;
         entity.status = status;
@@ -72,7 +58,7 @@ public final class ResponseEntity {
         return assignment;
     }
 
-    public SectionEntity section() {
+    public AssignmentSectionEntity section() {
         return item.getSection();
     }
 
@@ -92,11 +78,11 @@ public final class ResponseEntity {
         this.assignment = assignment;
     }
 
-    public ItemEntity getItem() {
+    public AssignmentItemEntity getItem() {
         return item;
     }
 
-    public void setItem(ItemEntity item) {
+    public void setItem(AssignmentItemEntity item) {
         this.item = item;
     }
 
@@ -115,4 +101,5 @@ public final class ResponseEntity {
     public void setComment(String comment) {
         this.comment = comment;
     }
+
 }

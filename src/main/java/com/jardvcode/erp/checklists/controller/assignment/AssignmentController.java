@@ -45,12 +45,12 @@ public final class AssignmentController {
 
     @GetMapping(value = "{id}/responses")
     public ResponseEntity<ResponseWrapper<ReportDTO>> fetchResponses(@PathVariable Long id) {
-        return ResponseWrapper.ok(ReportDTO.fromEntity(crud.findWithTemplateAndResponsesById(id)));
+        return ResponseWrapper.ok(ReportDTO.fromEntity(crud.findWithResponsesById(id)));
     }
 
     @PutMapping(value = "{id}/responses")
-    public ResponseEntity<ResponseWrapper<Void>> updateResponses(@PathVariable Long assignmentId, @RequestBody List<ResponseRequestDTO> dtos) {
-        crud.updateResponses(assignmentId, dtos);
+    public ResponseEntity<ResponseWrapper<Void>> updateResponses(@PathVariable Long id, @RequestBody List<ResponseRequestDTO> dtos) {
+        crud.updateResponses(id, dtos);
 
         return ResponseWrapper.ok(null);
     }

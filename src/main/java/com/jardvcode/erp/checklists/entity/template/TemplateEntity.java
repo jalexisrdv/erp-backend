@@ -23,7 +23,7 @@ public final class TemplateEntity {
 
     @OneToMany(mappedBy = "template", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("position ASC")
-    private Set<SectionEntity> sections = new HashSet<>();
+    private Set<TemplateSectionEntity> sections = new HashSet<>();
 
     public static TemplateEntity create(Long id, String name) {
         TemplateEntity entity = new TemplateEntity();
@@ -38,7 +38,7 @@ public final class TemplateEntity {
         this.name = name;
     }
 
-    public void updateStructure(Set<SectionEntity> sections) {
+    public void updateStructure(Set<TemplateSectionEntity> sections) {
         if(sections.isEmpty()) {
             throw new EmptySectionsException();
         }
@@ -98,11 +98,11 @@ public final class TemplateEntity {
         this.name = name;
     }
 
-    public Set<SectionEntity> getSections() {
+    public Set<TemplateSectionEntity> getSections() {
         return sections;
     }
 
-    public void setSections(Set<SectionEntity> sections) {
+    public void setSections(Set<TemplateSectionEntity> sections) {
         this.sections = sections;
     }
 

@@ -8,7 +8,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "checklist_sections")
-public final class SectionEntity {
+public final class TemplateSectionEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,16 +26,16 @@ public final class SectionEntity {
 
     @OneToMany(mappedBy = "section", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("position ASC")
-    private Set<ItemEntity> items = new HashSet<>();
+    private Set<TemplateItemEntity> items = new HashSet<>();
 
     @Column(name = "position")
     private Integer position;
 
-    public static SectionEntity create(Long id, String uuid, Long templateId, String name, Set<ItemEntity> items, Integer position) {
+    public static TemplateSectionEntity create(Long id, String uuid, Long templateId, String name, Set<TemplateItemEntity> items, Integer position) {
         TemplateEntity template = new TemplateEntity();
         template.setId(templateId);
 
-        SectionEntity entity = new SectionEntity();
+        TemplateSectionEntity entity = new TemplateSectionEntity();
 
         entity.id = id;
         entity.uuid = UUID.fromString(uuid);
@@ -85,11 +85,11 @@ public final class SectionEntity {
         this.name = name;
     }
 
-    public Set<ItemEntity> getItems() {
+    public Set<TemplateItemEntity> getItems() {
         return items;
     }
 
-    public void setItems(Set<ItemEntity> items) {
+    public void setItems(Set<TemplateItemEntity> items) {
         this.items = items;
     }
 
@@ -99,19 +99,6 @@ public final class SectionEntity {
 
     public void setPosition(Integer position) {
         this.position = position;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof ItemEntity)) return false;
-        ItemEntity that = (ItemEntity) o;
-        return id != null && id.equals(that.getId());
-    }
-
-    @Override
-    public int hashCode() {
-        return getClass().hashCode();
     }
 
 }

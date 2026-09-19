@@ -1,7 +1,5 @@
 package com.jardvcode.erp.checklists.dto.report;
 
-import java.util.Objects;
-
 public final class ResponseDTO {
 
     private String section;
@@ -30,18 +28,6 @@ public final class ResponseDTO {
 
     public String getComment() {
         return comment;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
-        ResponseDTO that = (ResponseDTO) o;
-        return Objects.equals(section, that.section) && Objects.equals(item, that.item) && Objects.equals(status, that.status) && Objects.equals(comment, that.comment);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(section, item, status, comment);
     }
 
     @Override

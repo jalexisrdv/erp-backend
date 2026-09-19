@@ -1,7 +1,7 @@
 package com.jardvcode.erp.checklists.dto.response;
 
 import com.jardvcode.erp.checklists.domain.ResponseStatusEnum;
-import com.jardvcode.erp.checklists.entity.assignment.ResponseEntity;
+import com.jardvcode.erp.checklists.entity.assignment.AssignmentResponseEntity;
 
 public record ResponseRequestDTO(
         Long id,
@@ -9,7 +9,7 @@ public record ResponseRequestDTO(
         String comment
 ) {
 
-    public static ResponseRequestDTO fromEntity(ResponseEntity entity) {
+    public static ResponseRequestDTO fromEntity(AssignmentResponseEntity entity) {
         return new ResponseRequestDTO(
                 entity.getId(),
                 entity.getStatus(),

@@ -4,10 +4,10 @@ import com.jardvcode.erp.checklists.dto.report.HeaderDTO;
 import com.jardvcode.erp.checklists.dto.report.ReportDTO;
 import com.jardvcode.erp.checklists.dto.report.ResponseDTO;
 import com.jardvcode.erp.checklists.entity.assignment.AssignmentEntity;
-import com.jardvcode.erp.checklists.entity.assignment.ResponseEntity;
+import com.jardvcode.erp.checklists.entity.assignment.AssignmentResponseEntity;
 import com.jardvcode.erp.checklists.exception.assignment.AssigmentDoesNotExistException;
 import com.jardvcode.erp.checklists.repository.assignment.AssigmentRepository;
-import com.jardvcode.erp.checklists.repository.assignment.ResponseRepository;
+import com.jardvcode.erp.checklists.repository.assignment.AssignmentResponseRepository;
 import com.jardvcode.erp.shared.domain.DomainError;
 import com.jardvcode.erp.shared.domain.DomainErrorType;
 import com.jardvcode.erp.shared.exeption.UnexpectedException;
@@ -25,25 +25,25 @@ public final class ReportDataProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(ReportDataProvider.class);
 
     private final AssigmentRepository assigmentRepository;
-    private final ResponseRepository responseRepository;
+    private final AssignmentResponseRepository responseRepository;
 
-    public ReportDataProvider(AssigmentRepository assigmentRepository, ResponseRepository responseRepository) {
+    public ReportDataProvider(AssigmentRepository assigmentRepository, AssignmentResponseRepository responseRepository) {
         this.assigmentRepository = assigmentRepository;
         this.responseRepository = responseRepository;
     }
 
     public ReportDTO findByAssignmentId(Long assignmentId) {
         try {
-            AssignmentEntity assignment = assigmentRepository.findWithTemplateAndOperatorAndMechanicById(assignmentId)
+            AssignmentEntity assignment = assigmentRepository.findById(assignmentId)
                     .orElseThrow(() -> new AssigmentDoesNotExistException(DomainErrorType.CONFLICT));
 
-            List<ResponseEntity> responses = responseRepository.findWithSectionAndItemByAssignmentIdOrderByItemPosition(assignmentId);
+            List<AssignmentResponseEntity> responses = responseRepository.findWithSectionAndItemByAssignmentIdOrderByItemPosition(assignmentId);
 
             HeaderDTO header = new HeaderDTO(
                     assignment.getUnitNumber().toString(),
-                    assignment.getTemplate().getName(),
-                    assignment.getOperator().fullName(),
-                    assignment.getMechanic().fullName(),
+                    assignment.getTemplateName(),
+                    assignment.getOperatorFullName(),
+                    assignment.getMechanicFullName(),
                     assignment.getMileage(),
                     assignment.getNextService(),
                     assignment.getTimeIn().toString(),

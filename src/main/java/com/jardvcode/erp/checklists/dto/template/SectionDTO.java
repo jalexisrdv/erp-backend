@@ -1,6 +1,6 @@
 package com.jardvcode.erp.checklists.dto.template;
 
-import com.jardvcode.erp.checklists.entity.template.SectionEntity;
+import com.jardvcode.erp.checklists.entity.template.TemplateSectionEntity;
 
 import java.util.List;
 import java.util.Set;
@@ -14,7 +14,7 @@ public record SectionDTO(
         Integer position
 ) {
 
-    public static SectionDTO fromEntity(SectionEntity entity) {
+    public static SectionDTO fromEntity(TemplateSectionEntity entity) {
         return new SectionDTO(
                 entity.getId(),
                 entity.getUuid().toString(),
@@ -25,7 +25,7 @@ public record SectionDTO(
         );
     }
 
-    public static List<SectionDTO> fromEntities(Set<SectionEntity> entities) {
+    public static List<SectionDTO> fromEntities(Set<TemplateSectionEntity> entities) {
         return entities.stream()
                 .map(SectionDTO::fromEntity)
                 .toList();

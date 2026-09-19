@@ -3,10 +3,11 @@ package com.jardvcode.erp.checklists.service.assignment;
 import com.jardvcode.erp.checklists.dto.assignment.AssignmentDTO;
 import com.jardvcode.erp.checklists.dto.response.ResponseRequestDTO;
 import com.jardvcode.erp.checklists.entity.assignment.AssignmentEntity;
-import com.jardvcode.erp.checklists.entity.assignment.ResponseEntity;
+import com.jardvcode.erp.checklists.entity.assignment.AssignmentResponseEntity;
 import com.jardvcode.erp.checklists.entity.template.TemplateEntity;
 import com.jardvcode.erp.checklists.exception.assignment.AssigmentDoesNotExistException;
 import com.jardvcode.erp.checklists.exception.assignment.IncompleteTemplateException;
+import com.jardvcode.erp.checklists.exception.assignment.UserDoesNotExistException;
 import com.jardvcode.erp.checklists.exception.template.TemplateDoesNotExistException;
 import com.jardvcode.erp.checklists.repository.assignment.AssigmentRepository;
 import com.jardvcode.erp.checklists.repository.template.TemplateRepository;
@@ -15,9 +16,7 @@ import com.jardvcode.erp.shared.domain.DomainErrorType;
 import com.jardvcode.erp.shared.domain.PaginationRules;
 import com.jardvcode.erp.shared.dto.pagination.PaginationRequestDTO;
 import com.jardvcode.erp.users.entity.UserEntity;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.criteria.Join;
-import jakarta.persistence.criteria.JoinType;
+import com.jardvcode.erp.users.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -38,12 +37,14 @@ public class AssigmentCrud {
 
     private final AssigmentRepository assignmentRepository;
     private final TemplateRepository templateRepository;
-    private final EntityManager entityManager;
+    private final UserRepository userRepository;
+    private final ChecklistAssignmentInitializer checklistAssignmentInitializer;
 
-    public AssigmentCrud(AssigmentRepository assignmentRepository, TemplateRepository templateRepository, EntityManager entityManager) {
+    public AssigmentCrud(AssigmentRepository assignmentRepository, TemplateRepository templateRepository, UserRepository userRepository, ChecklistAssignmentInitializer checklistAssignmentInitializer) {
         this.assignmentRepository = assignmentRepository;
         this.templateRepository = templateRepository;
-        this.entityManager = entityManager;
+        this.userRepository = userRepository;
+        this.checklistAssignmentInitializer = checklistAssignmentInitializer;
     }
 
     public AssignmentEntity create(AssignmentDTO dto) {
@@ -51,29 +52,35 @@ public class AssigmentCrud {
             TemplateEntity template = templateRepository.findWithSectionsAndItemsById(dto.template().id())
                     .orElseThrow(() -> new TemplateDoesNotExistException(DomainErrorType.CONFLICT));
 
+            UserEntity operator = userRepository.findById(dto.operator().id())
+                    .orElseThrow(() -> new UserDoesNotExistException(DomainErrorType.CONFLICT));
+
+            UserEntity mechanic = userRepository.findById(dto.mechanic().id())
+                    .orElseThrow(() -> new UserDoesNotExistException(DomainErrorType.CONFLICT));
+
             if(template.hasEmptySections()) {
                 throw new IncompleteTemplateException(DomainErrorType.CONFLICT);
             }
 
             AssignmentEntity assignment = AssignmentEntity.create(
                     dto.id(),
-                    template,
+                    template.getId(),
+                    template.getName(),
                     dto.unitNumber(),
-                    dto.operator().id(),
-                    dto.mechanic().id(),
+                    operator.getId(),
+                    operator.fullName(),
+                    mechanic.getId(),
+                    mechanic.fullName(),
                     dto.mileage(),
                     dto.nextService(),
                     dto.timeIn(),
                     dto.timeOut()
             );
 
-            AssignmentEntity savedAssignment = assignmentRepository.save(assignment);
+            assignmentRepository.save(assignment);
+            checklistAssignmentInitializer.initialize(template.getId(), assignment.getId());
 
-            entityManager.flush();
-            entityManager.detach(savedAssignment);
-
-            return assignmentRepository.findWithTemplateAndOperatorAndMechanicById(assignment.getId())
-                    .orElseThrow(() -> new AssigmentDoesNotExistException(DomainErrorType.CONFLICT));
+            return assignment;
         } catch (DomainError e) {
             LOG.info(e.getMessage(), e);
             throw e;
@@ -83,9 +90,9 @@ public class AssigmentCrud {
         }
     }
 
-    public AssignmentEntity findWithTemplateAndResponsesById(Long id) {
+    public AssignmentEntity findWithResponsesById(Long id) {
         try {
-            return assignmentRepository.findWithTemplateAndResponsesById(id)
+            return assignmentRepository.findWithResponsesById(id)
                     .orElseThrow(() -> new AssigmentDoesNotExistException(DomainErrorType.CONFLICT));
         } catch (DomainError e) {
             LOG.info(e.getMessage(), e);
@@ -101,23 +108,25 @@ public class AssigmentCrud {
             AssignmentEntity foundAssignment = assignmentRepository.findById(dto.id())
                     .orElseThrow(() -> new AssigmentDoesNotExistException(DomainErrorType.CONFLICT));
 
+            UserEntity operator = userRepository.findById(dto.operator().id())
+                    .orElseThrow(() -> new UserDoesNotExistException(DomainErrorType.CONFLICT));
+
+            UserEntity mechanic = userRepository.findById(dto.mechanic().id())
+                    .orElseThrow(() -> new UserDoesNotExistException(DomainErrorType.CONFLICT));
+
             foundAssignment.update(
                     dto.unitNumber(),
-                    dto.operator().id(),
-                    dto.mechanic().id(),
+                    operator.fullName(),
+                    mechanic.fullName(),
                     dto.mileage(),
                     dto.nextService(),
                     dto.timeIn(),
                     dto.timeOut()
             );
 
-            AssignmentEntity savedAssignment = assignmentRepository.save(foundAssignment);
+            assignmentRepository.save(foundAssignment);
 
-            entityManager.flush();
-            entityManager.detach(savedAssignment);
-
-            return assignmentRepository.findWithTemplateAndOperatorAndMechanicById(foundAssignment.getId())
-                    .orElseThrow(() -> new AssigmentDoesNotExistException(DomainErrorType.CONFLICT));
+            return foundAssignment;
         } catch (DomainError e) {
             LOG.info(e.getMessage(), e);
             throw e;
@@ -134,10 +143,8 @@ public class AssigmentCrud {
             Specification<AssignmentEntity> specification = (root, query, builder) -> {
                 String search = "%" + paginationDTO.search().toLowerCase() + "%";
 
-                Join<AssignmentEntity, UserEntity> operator = root.join("operator", JoinType.LEFT);
-
                 return builder.or(
-                        builder.like(builder.lower(operator.get("firstName")), search)
+                        builder.like(builder.lower(root.get("operatorFullName")), search)
                 );
             };
 
@@ -159,12 +166,12 @@ public class AssigmentCrud {
 
     public void updateResponses(Long assignmentId, List<ResponseRequestDTO> responseDtos) {
         try {
-            AssignmentEntity foundAssignment = assignmentRepository.findWithTemplateAndResponsesById(assignmentId)
+            AssignmentEntity foundAssignment = assignmentRepository.findWithResponsesById(assignmentId)
                     .orElseThrow(() -> new AssigmentDoesNotExistException(DomainErrorType.CONFLICT));
 
-            List<ResponseEntity> incomingResponses = responseDtos.stream()
+            List<AssignmentResponseEntity> incomingResponses = responseDtos.stream()
                             .map(response -> {
-                                return ResponseEntity.create(
+                                return AssignmentResponseEntity.create(
                                         response.id(),
                                         response.status(),
                                         response.comment()

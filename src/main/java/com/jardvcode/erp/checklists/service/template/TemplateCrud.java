@@ -2,8 +2,8 @@ package com.jardvcode.erp.checklists.service.template;
 
 import com.jardvcode.erp.checklists.dto.template.TemplateDTO;
 import com.jardvcode.erp.checklists.dto.template.TemplateStructureRequestDTO;
-import com.jardvcode.erp.checklists.entity.template.ItemEntity;
-import com.jardvcode.erp.checklists.entity.template.SectionEntity;
+import com.jardvcode.erp.checklists.entity.template.TemplateItemEntity;
+import com.jardvcode.erp.checklists.entity.template.TemplateSectionEntity;
 import com.jardvcode.erp.checklists.entity.template.TemplateEntity;
 import com.jardvcode.erp.checklists.exception.template.TemplateAlreadyExistsException;
 import com.jardvcode.erp.checklists.exception.template.TemplateDoesNotExistException;
@@ -128,11 +128,11 @@ public final class TemplateCrud {
             TemplateEntity foundTemplate = repository.findById(dto.id())
                     .orElseThrow(() -> new TemplateDoesNotExistException(DomainErrorType.CONFLICT));
 
-            Set<SectionEntity> sections = dto.sections().stream()
+            Set<TemplateSectionEntity> sections = dto.sections().stream()
                     .map((section -> {
-                        Set<ItemEntity> items = section.items().stream()
+                        Set<TemplateItemEntity> items = section.items().stream()
                                 .map(item -> {
-                                    return ItemEntity.create(
+                                    return TemplateItemEntity.create(
                                             item.id(),
                                             item.uuid(),
                                             item.label(),
@@ -141,7 +141,7 @@ public final class TemplateCrud {
                                 })
                                 .collect(Collectors.toSet());
 
-                        return SectionEntity.create(
+                        return TemplateSectionEntity.create(
                                 section.id(),
                                 section.uuid(),
                                 section.templateId(),

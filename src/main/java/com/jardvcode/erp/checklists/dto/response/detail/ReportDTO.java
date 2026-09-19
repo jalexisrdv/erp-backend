@@ -1,7 +1,7 @@
 package com.jardvcode.erp.checklists.dto.response.detail;
 
 import com.jardvcode.erp.checklists.entity.assignment.AssignmentEntity;
-import com.jardvcode.erp.checklists.entity.template.SectionEntity;
+import com.jardvcode.erp.checklists.entity.assignment.AssignmentSectionEntity;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -17,7 +17,7 @@ public record ReportDTO(
         HashMap<String, SectionDTO> sections = new HashMap<>();
 
         assignment.getResponses().forEach(responseEntity -> {
-            SectionEntity sectionEntity = responseEntity.section();
+            AssignmentSectionEntity sectionEntity = responseEntity.section();
 
             SectionDTO section = sections.computeIfAbsent(
                     sectionEntity.getName(),
@@ -42,9 +42,9 @@ public record ReportDTO(
 
         HeaderDTO header = new HeaderDTO(
                 assignment.getUnitNumber().toString(),
-                assignment.getTemplate().getName(),
-                assignment.getOperator().fullName(),
-                assignment.getMechanic().fullName(),
+                assignment.getTemplateName(),
+                assignment.getOperatorFullName(),
+                assignment.getMechanicFullName(),
                 assignment.getMileage(),
                 assignment.getNextService(),
                 assignment.getTimeIn().toString(),

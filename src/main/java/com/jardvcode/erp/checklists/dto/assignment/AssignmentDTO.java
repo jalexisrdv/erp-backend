@@ -22,17 +22,17 @@ public record AssignmentDTO(
         return new AssignmentDTO(
                 entity.getId(),
                 new TemplateDTO(
-                        entity.getTemplate().getId(),
-                        entity.getTemplate().getName()
+                        entity.getTemplateId(),
+                        entity.getTemplateName()
                 ),
                 entity.getUnitNumber(),
                 new OperatorDTO(
-                        entity.getOperator().getId(),
-                        entity.getOperator().fullName()
+                        entity.getOperatorUserId(),
+                        entity.getOperatorFullName()
                 ),
                 new MechanicDTO(
-                        entity.getMechanic().getId(),
-                        entity.getMechanic().fullName()
+                        entity.getMechanicUserId(),
+                        entity.getMechanicFullName()
                 ),
                 entity.getMileage(),
                 entity.getNextService(),
