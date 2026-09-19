@@ -59,7 +59,7 @@ public final class AssignmentEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
-    private AssignmentStatusEnum status = AssignmentStatusEnum.PENDIENTE;
+    private AssignmentStatusEnum status = AssignmentStatusEnum.PENDING;
 
     @OneToMany(mappedBy = "assignment", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Set<AssignmentResponseEntity> responses = new HashSet<>();
@@ -95,7 +95,7 @@ public final class AssignmentEntity {
         entity.timeIn = localTimeIn;
         entity.timeOut = localTimeOut;
         entity.date = LocalDate.now();
-        entity.status = AssignmentStatusEnum.PENDIENTE;
+        entity.status = AssignmentStatusEnum.PENDING;
 
         return entity;
     }
@@ -144,7 +144,7 @@ public final class AssignmentEntity {
 
     public AssignmentStatusEnum determineStatus() {
         boolean allResponsesAnswered = responses.stream().allMatch(AssignmentResponseEntity::isAnswered);
-        return allResponsesAnswered ? AssignmentStatusEnum.COMPLETADO : AssignmentStatusEnum.PENDIENTE;
+        return allResponsesAnswered ? AssignmentStatusEnum.COMPLETED : AssignmentStatusEnum.PENDING;
     }
 
     public Long getId() {

@@ -151,11 +151,11 @@ CREATE TABLE inventory (
 CREATE TABLE inventory_movements (
     id SERIAL PRIMARY KEY,
     inventory_id INT NOT NULL,
-    type VARCHAR(20) DEFAULT '' NOT NULL CHECK (type IN ('ENTRADA', 'SALIDA')),
+    type VARCHAR(20) NOT NULL CHECK (type IN ('INBOUND', 'OUTBOUND')),
     quantity NUMERIC(10,2) DEFAULT 0 NOT NULL CHECK (quantity >= 0),
     invoice_url TEXT,
     output_reason TEXT,
-    status VARCHAR(20) DEFAULT 'PENDIENTE' CHECK (status IN ('PENDIENTE', 'APROBADO', 'RECHAZADO')),
+    status VARCHAR(20) NOT NULL CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED')),
     rejected_reason TEXT,
     created_by INT,
     created_at TIMESTAMP DEFAULT NOW(),
@@ -241,7 +241,7 @@ CREATE TABLE checklist_assignments (
     time_in TIME NOT NULL,
     time_out TIME NOT NULL,
     date DATE NOT NULL DEFAULT CURRENT_DATE,
-    status VARCHAR(150) DEFAULT 'PENDIENTE',
+    status VARCHAR(150) NOT NULL CHECK (status IN ('PENDING', 'COMPLETED', 'APPROVED')),
 
     CONSTRAINT fk_checklist_assignments_users_operator_user_id
             FOREIGN KEY (operator_user_id)
@@ -264,7 +264,7 @@ CREATE TABLE assignment_sections (
     assignment_id INT NOT NULL,
     name VARCHAR(1000) NOT NULL,
     position INT NOT NULL,
-    status VARCHAR(150) DEFAULT 'PENDIENTE',
+    status VARCHAR(150) NOT NULL CHECK (status IN ('PENDING', 'COMPLETED')),
 
     CONSTRAINT fk_assignment_sections_checklist_assignments
         FOREIGN KEY (assignment_id)

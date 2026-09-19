@@ -82,10 +82,10 @@ public final class MovementEntity {
         MovementEntity entity = new MovementEntity();
 
         entity.item = item;
-        entity.type = MovementEnum.ENTRADA;
+        entity.type = MovementEnum.INBOUND;
         entity.quantity = quantity;
         entity.invoiceUrl = invoiceUrl;
-        entity.status = StatusEnum.PENDIENTE;
+        entity.status = StatusEnum.PENDING;
         entity.createdBy = user;
         entity.createdAt = LocalDateTime.now();
 
@@ -93,7 +93,7 @@ public final class MovementEntity {
     }
 
     public void updateEntry(Long quantity, String invoiceUrl, Long userId) {
-        if(status != StatusEnum.PENDIENTE) {
+        if(status != StatusEnum.PENDING) {
             throw new StatusAlreadyReviewedException();
         }
 
@@ -114,14 +114,14 @@ public final class MovementEntity {
     }
 
     public void approveEntry(Long userId) {
-        if(status != StatusEnum.PENDIENTE) {
+        if(status != StatusEnum.PENDING) {
             throw new StatusAlreadyReviewedException();
         }
 
         UserEntity user = new UserEntity();
         user.setId(userId);
 
-        status = StatusEnum.APROBADO;
+        status = StatusEnum.APPROVED;
         reviewedBy = user;
         reviewedAt = LocalDateTime.now();
     }
@@ -144,10 +144,10 @@ public final class MovementEntity {
         MovementEntity entity = new MovementEntity();
 
         entity.item = item;
-        entity.type = MovementEnum.SALIDA;
+        entity.type = MovementEnum.OUTBOUND;
         entity.quantity = quantity;
         entity.outputReason = reason;
-        entity.status = StatusEnum.PENDIENTE;
+        entity.status = StatusEnum.PENDING;
         entity.createdBy = user;
         entity.createdAt = LocalDateTime.now();
 
@@ -155,7 +155,7 @@ public final class MovementEntity {
     }
 
     public void updateOutput(Long quantity, String reason, Long userId) {
-        if(status != StatusEnum.PENDIENTE) {
+        if(status != StatusEnum.PENDING) {
             throw new StatusAlreadyReviewedException();
         }
 
@@ -181,7 +181,7 @@ public final class MovementEntity {
     }
 
     public void approveOutput(Long userId) {
-        if(status != StatusEnum.PENDIENTE) {
+        if(status != StatusEnum.PENDING) {
             throw new StatusAlreadyReviewedException();
         }
 
@@ -192,13 +192,13 @@ public final class MovementEntity {
         UserEntity user = new UserEntity();
         user.setId(userId);
 
-        status = StatusEnum.APROBADO;
+        status = StatusEnum.APPROVED;
         reviewedBy = user;
         reviewedAt = LocalDateTime.now();
     }
 
     public void reject(Long userId, String reason) {
-        if(status != StatusEnum.PENDIENTE) {
+        if(status != StatusEnum.PENDING) {
             throw new StatusAlreadyReviewedException();
         }
 
@@ -210,7 +210,7 @@ public final class MovementEntity {
         user.setId(userId);
 
         rejectReason = reason;
-        status = StatusEnum.RECHAZADO;
+        status = StatusEnum.REJECTED;
         reviewedBy = user;
         reviewedAt = LocalDateTime.now();
     }
