@@ -2,9 +2,8 @@ package com.jardvcode.erp.checklists.entity.template;
 
 import jakarta.persistence.*;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "checklist_sections")
@@ -49,8 +48,32 @@ public final class TemplateSectionEntity {
         return entity;
     }
 
-    public void update(String name) {
-        this.setName(name);
+    public void update(String name, Integer position) {
+        this.name = name;
+        this.position = position;
+    }
+
+    public void updateItems(Collection<TemplateItemEntity> incomingItems) {
+        Map<UUID, TemplateItemEntity> pendingIncomingItems = incomingItems.stream()
+                .collect(Collectors.toMap(TemplateItemEntity::getUuid, item -> item));
+
+        Iterator<TemplateItemEntity> currentItemIterator = items.iterator();
+
+        while(currentItemIterator.hasNext()) {
+            TemplateItemEntity currentItem = currentItemIterator.next();
+
+            TemplateItemEntity incomingItem = pendingIncomingItems.remove(currentItem.getUuid());
+
+            if(incomingItem == null) {
+                currentItemIterator.remove();
+
+                continue;
+            }
+
+            currentItem.update(incomingItem.getLabel(), incomingItem.getPosition());
+        }
+
+        items.addAll(pendingIncomingItems.values());
     }
 
     public Long getId() {

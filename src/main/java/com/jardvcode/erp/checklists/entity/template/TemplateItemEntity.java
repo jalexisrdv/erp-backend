@@ -36,8 +36,9 @@ public final class TemplateItemEntity {
         return entity;
     }
 
-    public void update(String label) {
-        this.setLabel(label);
+    public void update(String label, Integer position) {
+        this.label = label;
+        this.position = position;
     }
 
     public Long getId() {

@@ -1,13 +1,9 @@
 package com.jardvcode.erp.checklists.entity.template;
 
 import com.jardvcode.erp.checklists.exception.template.InvalidTemplateStructureException;
-import com.jardvcode.erp.checklists.exception.template.section.EmptySectionsException;
 import jakarta.persistence.*;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Entity
@@ -38,15 +34,20 @@ public final class TemplateEntity {
         this.name = name;
     }
 
-    public void updateStructure(Set<TemplateSectionEntity> sections) {
-        if(sections.isEmpty()) {
-            throw new EmptySectionsException();
+    public void updateStructure(Set<TemplateSectionEntity> incomingSections) {
+        ensureValidStructure(incomingSections);
+        updateSections(incomingSections);
+    }
+
+    private void ensureValidStructure(Set<TemplateSectionEntity> incomingSections) {
+        if(incomingSections.isEmpty()) {
+            return;
         }
 
         Map<String, Integer> duplicatedSectionCounts = new HashMap<>();
         Map<String, Map<String, Integer>> duplicatedItemCountsBySection = new HashMap<>();
 
-        sections.stream().forEach(section -> {
+        incomingSections.stream().forEach(section -> {
             String sectionName = section.getName().toUpperCase();
 
             duplicatedSectionCounts.merge(sectionName, 1, Integer::sum);
@@ -73,9 +74,30 @@ public final class TemplateEntity {
         if(hasDuplicates) {
             throw new InvalidTemplateStructureException(duplicatedSectionCounts, duplicatedItemCountsBySection);
         }
-        
-        this.sections.clear();
-        this.sections.addAll(sections);
+    }
+
+    public void updateSections(Set<TemplateSectionEntity> incomingSections) {
+        Map<UUID, TemplateSectionEntity> pendingIncomingSections = incomingSections.stream()
+                .collect(Collectors.toMap(TemplateSectionEntity::getUuid, section -> section));
+
+        Iterator<TemplateSectionEntity> currentSectionIterator = this.sections.iterator();
+
+        while(currentSectionIterator.hasNext()) {
+            TemplateSectionEntity currentSection = currentSectionIterator.next();
+
+            TemplateSectionEntity incomingSection = pendingIncomingSections.remove(currentSection.getUuid());
+
+            if(incomingSection == null) {
+                currentSectionIterator.remove();
+
+                continue;
+            }
+
+            currentSection.updateItems(incomingSection.getItems());
+            currentSection.update(incomingSection.getName(), incomingSection.getPosition());
+        }
+
+        sections.addAll(pendingIncomingSections.values());
     }
 
     public boolean hasEmptySections() {
