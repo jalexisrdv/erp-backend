@@ -63,3 +63,106 @@ INSERT INTO role_permissions (role_id, permission_id) SELECT 1, id FROM permissi
 INSERT INTO users (id, first_name, middle_name, last_name, second_last_name, phone_number, username, password, enabled, credentials_expired) VALUES(1, 'Jose', 'Alexis', 'Ramirez', 'del Valle', '555555555555', 'jalexisrdv', '$2a$10$Eg7bKj0VW61UjNxbtZtzRuRTw53l7Xwsd/PZuDcnN8MdtNwhF.vZO', false, false);
 
 INSERT INTO user_roles (user_id, role_id) VALUES (1, 1);
+
+INSERT INTO checklist_templates (name) VALUES ('Formato para servicios A y C (BASICO)');
+
+INSERT INTO checklist_sections (id, template_id, name, position) VALUES
+(1, 1, 'SISTEMA DE DIRECCION', 1),
+(2, 1, 'SUSPENCION DELANTERA', 2),
+(3, 1, 'MOTOR', 3),
+(4, 1, 'EMBRAGUE', 4),
+(5, 1, 'TRANSMISION', 5),
+(6, 1, 'DIFERENCIALES', 6),
+(7, 1, 'QUINTARUEDA', 7),
+(8, 1, 'SISTEMA ELECTRICO/ELECTRONICO', 8),
+(9, 1, 'SISTEMA DE RODAMIENTO', 9),
+(10, 1, 'SISTEMA DE FRENOS', 10),
+(11, 1, 'EQUIPO DE SEGURIDAD', 11),
+(12, 1, 'LIMPIEZA Y LUBRICACION', 12);
+
+INSERT INTO checklist_items (section_id, label, position) VALUES
+(1, 'REVISAR NIVEL DE ACEITE', 1),
+(2, 'REVISAR ABRAZADERAS', 1),
+(3, 'REVISION DE FUGAS (ACEITE, AGUA, DIESEL)', 1),
+(3, 'RESET INSITE', 2),
+(3, 'CAMBIO DE FILTROS (DIESEL)', 3),
+(3, 'REVISAR TENSION DE BANDAS', 4),
+(3, 'NIVEL DE REFRIGERANTE', 5),
+(3, 'CAMBIAR FILTRO DE AIRE SEGUN INDICADOR DE PARTICULAS', 6),
+(4, 'AJUSTE O CALIBRAR', 1),
+(4, 'REVISION LIQUIDO', 2),
+(5, 'REVISAR NIVEL DE ACEITE', 1),
+(5, 'REVISAR FUGAS DE ACEITE', 2),
+(5, 'REVISAR FUGAS DE AIRE', 3),
+(6, 'REVISAR NIVEL DE ACEITE', 1),
+(6, 'REVISAR FUGAS DE ACEITE', 2),
+(7, 'LIMPIEZA GENERAL', 1),
+(7, 'LUBRICACION', 2),
+(8, 'CHECAR BATERIAS Y TERMINALES', 1),
+(8, 'CHECAR ARNESES Y CABLES (SUELTOS)', 2),
+(8, 'REVISAR LUCES', 3),
+(8, 'REV ALARMA DE REVERSA', 4),
+(8, 'REVISAR CODIGOS DE FALLA DE MOTOR EN TABLERO DE INSTRUMENTOS', 5),
+(9, 'REVISAR PRESION (100LBS)', 1),
+(9, 'REVISAR MARCAJE', 2),
+(10, 'REVISAR FUGAS DE AIRE', 1),
+(10, 'PURGAR TANQUES DE AIRE', 2),
+(10, 'CALIBRAR FRENOS', 3),
+(11, 'REVISAR CINTURONES DE SEGURIDAD', 1),
+(11, 'REVISAR PORTA EXTINTOR', 2),
+(12, 'LAVADO DE MOTOR Y CARROCERIA', 1),
+(12, 'ENGRASADO GENERAL', 2);
+
+INSERT INTO checklist_assignments (
+    template_id,
+    template_name,
+    unit_number,
+    operator_user_id,
+    operator_full_name,
+    mechanic_user_id,
+    mechanic_full_name,
+    mileage,
+    next_service,
+    time_in,
+    time_out,
+    date,
+    status
+) VALUES (
+    1,
+    'Formato para servicios A y C (BASICO)',
+    243,
+    1,
+    'PEDRO OCELOT',
+    1,
+    'CATARINO',
+    '1299961',
+    '1,300,000 BASICO',
+    '09:00:00',
+    '18:00:00',
+    CURRENT_DATE,
+    'PENDING'
+);
+
+INSERT INTO assignment_sections (section_id, assignment_id, name, position, status)
+SELECT id, 1, name, position, 'PENDING'
+FROM checklist_sections
+WHERE template_id = 1
+ORDER BY position;
+
+INSERT INTO assignment_items (item_id, section_id, label, position)
+SELECT items.id, sections.id, items.label, items.position
+FROM checklist_items items
+JOIN assignment_sections sections ON sections.section_id = items.section_id
+WHERE sections.assignment_id = 1
+ORDER BY sections.position, items.position;
+
+INSERT INTO assignment_responses (assignment_id, item_id, status, comment)
+SELECT
+    sections.assignment_id,
+    items.id,
+    NULL,
+    NULL
+FROM assignment_items items
+JOIN assignment_sections sections ON sections.id = items.section_id
+WHERE sections.assignment_id = 1
+ORDER BY sections.position, items.position;
