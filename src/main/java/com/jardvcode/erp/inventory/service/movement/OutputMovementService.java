@@ -1,6 +1,7 @@
 package com.jardvcode.erp.inventory.service.movement;
 
 import com.jardvcode.erp.authentication.service.AuthenticatedUserProvider;
+import com.jardvcode.erp.filestorage.service.S3FileStorage;
 import com.jardvcode.erp.inventory.dto.ApproveMovementRequestDTO;
 import com.jardvcode.erp.inventory.dto.OutputMovementRequestDTO;
 import com.jardvcode.erp.inventory.dto.RejectMovementRequestDTO;
@@ -29,18 +30,31 @@ public class OutputMovementService {
     private final InventoryMovementRepository movementRepository;
     private final AuthenticatedUserProvider userProvider;
     private final EntityManager entityManager;
+    private final S3FileStorage fileStorage;
 
-    public OutputMovementService(InventoryRepository inventoryRepository, InventoryMovementRepository movementRepository, AuthenticatedUserProvider userProvider, EntityManager entityManager) {
+    public OutputMovementService(InventoryRepository inventoryRepository, InventoryMovementRepository movementRepository, AuthenticatedUserProvider userProvider, EntityManager entityManager, S3FileStorage fileStorage) {
         this.inventoryRepository = inventoryRepository;
         this.movementRepository = movementRepository;
         this.userProvider = userProvider;
         this.entityManager = entityManager;
+        this.fileStorage = fileStorage;
     }
 
     public MovementEntity create(OutputMovementRequestDTO dto) {
         try {
+            String documentName = dto.documentName();
+            byte[] documentBytes = dto.documentBytes();
+
+            MovementEntity.ensurePdfFormat(documentName, documentBytes);
+
             InventoryEntity foundInventory = inventoryRepository.findById(dto.itemId())
                     .orElseThrow(() -> new ItemDoesNotExistException(DomainErrorType.CONFLICT));
+
+            String documentUrl = fileStorage.upload(
+                    documentBytes,
+                    documentName,
+                    MovementEntity.generatePdfPath(dto.itemId())
+            );
 
             if(!foundInventory.hasStockFor(dto.quantity())) {
                 throw new InsufficientStockException();
@@ -50,6 +64,7 @@ public class OutputMovementService {
                     dto.itemId(),
                     dto.quantity(),
                     dto.reason(),
+                    documentUrl,
                     userProvider.getUserId()
             );
 

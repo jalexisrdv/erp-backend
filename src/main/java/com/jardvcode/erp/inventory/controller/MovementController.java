@@ -27,7 +27,7 @@ public final class MovementController {
 
     @GetMapping(value = "{id}/invoice/preview")
     public ResponseEntity<ResponseWrapper<InvoicePreviewDTO>> previewInvoice(@PathVariable  Long id) {
-        return ResponseWrapper.ok(InvoicePreviewDTO.fromUrl(entryMovementService.previewInvoice(id)));
+        return ResponseWrapper.ok(InvoicePreviewDTO.fromUrl(entryMovementService.previewDocument(id)));
     }
 
     @PostMapping(value = "/entries", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -50,13 +50,13 @@ public final class MovementController {
         return ResponseWrapper.ok(MovementDTO.fromEntity(entryMovementService.reject(dto)));
     }
 
-    @PostMapping(value = "/outputs")
-    public ResponseEntity<ResponseWrapper<MovementDTO>> createOutput(@RequestBody OutputMovementRequestDTO dto) {
+    @PostMapping(value = "/outputs", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ResponseWrapper<MovementDTO>> createOutput(@ModelAttribute OutputMovementRequestDTO dto) {
         return ResponseWrapper.ok(MovementDTO.fromEntity(outputMovementService.create(dto)));
     }
 
-    @PutMapping(value = "/outputs")
-    public ResponseEntity<ResponseWrapper<MovementDTO>> updateOutput(@RequestBody OutputMovementRequestDTO dto) {
+    @PutMapping(value = "/outputs", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ResponseWrapper<MovementDTO>> updateOutput(@ModelAttribute OutputMovementRequestDTO dto) {
         return ResponseWrapper.ok(MovementDTO.fromEntity(outputMovementService.update(dto)));
     }
 

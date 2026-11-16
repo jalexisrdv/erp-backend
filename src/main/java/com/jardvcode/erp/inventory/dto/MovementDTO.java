@@ -29,7 +29,7 @@ public record MovementDTO(
                 InventoryDTO.fromEntity(entity.getItem()),
                 entity.getType(),
                 entity.getQuantity(),
-                entity.getInvoiceUrl(),
+                entity.getDocumentUrl(),
                 entity.getOutputReason(),
                 entity.getStatus(),
                 entity.getRejectReason(),

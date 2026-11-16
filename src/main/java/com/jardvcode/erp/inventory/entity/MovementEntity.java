@@ -30,8 +30,8 @@ public final class MovementEntity {
     @Column(name = "quantity")
     private Long quantity;
 
-    @Column(name = "invoice_url")
-    private String invoiceUrl;
+    @Column(name = "document_url")
+    private String documentUrl;
 
     @Column(name = "output_reason")
     private String outputReason;
@@ -64,13 +64,13 @@ public final class MovementEntity {
     @Column(name = "reviewed_at")
     private LocalDateTime reviewedAt;
 
-    public static MovementEntity createEntry(Long itemId, Long quantity, String invoiceUrl, Long userId) {
+    public static MovementEntity createEntry(Long itemId, Long quantity, String documentUrl, Long userId) {
         if(quantity <= 0) {
             throw new InvalidQuantityException();
         }
 
-        if(invoiceUrl == null || invoiceUrl.isBlank()) {
-            throw new InvoiceRequiredException();
+        if(documentUrl == null || documentUrl.isBlank()) {
+            throw new DocumentRequiredException();
         }
 
         InventoryEntity item = new InventoryEntity();
@@ -84,7 +84,7 @@ public final class MovementEntity {
         entity.item = item;
         entity.type = MovementEnum.INBOUND;
         entity.quantity = quantity;
-        entity.invoiceUrl = invoiceUrl;
+        entity.documentUrl = documentUrl;
         entity.status = StatusEnum.PENDING;
         entity.createdBy = user;
         entity.createdAt = LocalDateTime.now();
@@ -102,7 +102,7 @@ public final class MovementEntity {
         }
 
         if(invoiceUrl == null || invoiceUrl.isEmpty()) {
-            throw new InvoiceRequiredException();
+            throw new DocumentRequiredException();
         }
 
         UserEntity user = new UserEntity();
@@ -126,13 +126,17 @@ public final class MovementEntity {
         reviewedAt = LocalDateTime.now();
     }
 
-    public static MovementEntity createOutput(Long itemId, Long quantity, String reason, Long userId) {
+    public static MovementEntity createOutput(Long itemId, Long quantity, String reason, String documentUrl, Long userId) {
         if(quantity <= 0) {
             throw new InvalidQuantityException();
         }
 
         if(reason == null || reason.isEmpty()) {
             throw new OutputReasonRequiredException();
+        }
+
+        if(documentUrl == null || documentUrl.isBlank()) {
+            throw new DocumentRequiredException();
         }
 
         InventoryEntity item = new InventoryEntity();
@@ -147,6 +151,7 @@ public final class MovementEntity {
         entity.type = MovementEnum.OUTBOUND;
         entity.quantity = quantity;
         entity.outputReason = reason;
+        entity.documentUrl = documentUrl;
         entity.status = StatusEnum.PENDING;
         entity.createdBy = user;
         entity.createdAt = LocalDateTime.now();
@@ -215,17 +220,17 @@ public final class MovementEntity {
         reviewedAt = LocalDateTime.now();
     }
 
-    public static void ensureInvoicePdfFormat(String filename, byte[] content) throws InvalidInvoiceFormatException {
+    public static void ensurePdfFormat(String filename, byte[] content) throws InvalidDocumentFormatException {
         if(filename == null || filename.isBlank()) {
-            throw new InvalidInvoiceFormatException("No se pudo determinar el nombre del archivo de la factura o este se encuentra vacío");
+            throw new InvalidDocumentFormatException("No se pudo determinar el nombre del archivo o este se encuentra vacío");
         }
 
         if (content == null) {
-            throw new InvalidInvoiceFormatException("El contenido del archivo de la factura no puede estar vacío");
+            throw new InvalidDocumentFormatException("El contenido del archivo no puede estar vacío");
         }
 
         if (content.length < 5) {
-            throw new InvalidInvoiceFormatException("El archivo de la factura parece estar dañado o incompleto");
+            throw new InvalidDocumentFormatException("El archivo parece estar dañado o incompleto");
         }
 
         boolean isPdf = content[0] == 0x25 &&
@@ -235,11 +240,11 @@ public final class MovementEntity {
                 content[4] == 0x2D;
 
         if (!isPdf) {
-            throw new InvalidInvoiceFormatException("El archivo no tiene una estructura de PDF válida");
+            throw new InvalidDocumentFormatException("El archivo no tiene una estructura de PDF válida");
         }
     }
 
-    public static String generateInvoicePath(Long itemId) {
+    public static String generatePdfPath(Long itemId) {
         return itemId + "/" + UUID.randomUUID() + ".pdf";
     }
 
@@ -296,12 +301,12 @@ public final class MovementEntity {
         this.quantity = quantity;
     }
 
-    public String getInvoiceUrl() {
-        return invoiceUrl;
+    public String getDocumentUrl() {
+        return documentUrl;
     }
 
-    public void setInvoiceUrl(String invoiceUrl) {
-        this.invoiceUrl = invoiceUrl;
+    public void setDocumentUrl(String documentUrl) {
+        this.documentUrl = documentUrl;
     }
 
     public String getOutputReason() {

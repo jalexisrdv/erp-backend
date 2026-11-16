@@ -11,31 +11,31 @@ public record EntryMovementRequestDTO(
         Long id,
         Long itemId,
         Long quantity,
-        MultipartFile invoice,
+        MultipartFile document,
         String rejectReason
 ) {
     private final static Logger LOG = LoggerFactory.getLogger(EntryMovementRequestDTO.class);
 
     @Override
-    public MultipartFile invoice() {
-        throw new UnsupportedOperationException("Usa invoiceBytes() para interactuar con el archivo.");
+    public MultipartFile document() {
+        throw new UnsupportedOperationException("Usa documentBytes() para interactuar con el archivo.");
     }
 
-    public byte[] invoiceBytes() {
-        if (invoice == null) {
+    public byte[] documentBytes() {
+        if (document == null) {
             return null;
         }
 
         try {
-            return invoice.getBytes();
+            return document.getBytes();
         } catch (IOException e) {
             LOG.error(e.getMessage(), e);
             throw new CorruptedInvoiceException();
         }
     }
 
-    public String invoiceName() {
-        return invoice != null ? invoice.getOriginalFilename() : null;
+    public String documentName() {
+        return document != null ? document.getOriginalFilename() : null;
     }
 
 }

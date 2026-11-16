@@ -153,7 +153,7 @@ CREATE TABLE inventory_movements (
     inventory_id INT NOT NULL,
     type VARCHAR(20) NOT NULL CHECK (type IN ('INBOUND', 'OUTBOUND')),
     quantity NUMERIC(10,2) DEFAULT 0 NOT NULL CHECK (quantity >= 0),
-    invoice_url TEXT,
+    document_url TEXT,
     output_reason TEXT,
     status VARCHAR(20) NOT NULL CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED')),
     rejected_reason TEXT,

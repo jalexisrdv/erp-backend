@@ -40,24 +40,24 @@ public class EntryMovementService {
 
     public MovementEntity create(EntryMovementRequestDTO dto) {
         try {
-            String invoiceName = dto.invoiceName();
-            byte[] invoiceBytes = dto.invoiceBytes();
+            String documentName = dto.documentName();
+            byte[] documentBytes = dto.documentBytes();
 
-            MovementEntity.ensureInvoicePdfFormat(invoiceName, invoiceBytes);
+            MovementEntity.ensurePdfFormat(documentName, documentBytes);
 
             inventoryRepository.findById(dto.itemId())
                     .orElseThrow(() -> new ItemDoesNotExistException(DomainErrorType.CONFLICT));
 
-            String invoiceUrl = fileStorage.upload(
-                    invoiceBytes,
-                    invoiceName,
-                    MovementEntity.generateInvoicePath(dto.itemId())
+            String documentUrl = fileStorage.upload(
+                    documentBytes,
+                    documentName,
+                    MovementEntity.generatePdfPath(dto.itemId())
             );
 
             MovementEntity movement = MovementEntity.createEntry(
                     dto.itemId(),
                     dto.quantity(),
-                    invoiceUrl,
+                    documentUrl,
                     userProvider.getUserId()
             );
 
@@ -82,23 +82,23 @@ public class EntryMovementService {
 
     public MovementEntity update(EntryMovementRequestDTO dto) {
         try {
-            String invoiceName = dto.invoiceName();
-            byte[] invoiceBytes = dto.invoiceBytes();
+            String documentName = dto.documentName();
+            byte[] documentBytes = dto.documentBytes();
 
-            MovementEntity.ensureInvoicePdfFormat(invoiceName, invoiceBytes);
+            MovementEntity.ensurePdfFormat(documentName, documentBytes);
 
             MovementEntity foundMovement = movementRepository.findById(dto.id())
                     .orElseThrow(() -> new MovementDoesNotExistException(DomainErrorType.CONFLICT));
 
-            String invoiceUrl = fileStorage.upload(
-                    invoiceBytes,
-                    invoiceName,
-                    MovementEntity.generateInvoicePath(dto.itemId())
+            String documentUrl = fileStorage.upload(
+                    documentBytes,
+                    documentName,
+                    MovementEntity.generatePdfPath(dto.itemId())
             );
 
             foundMovement.updateEntry(
                     dto.quantity(),
-                    invoiceUrl,
+                    documentUrl,
                     userProvider.getUserId()
             );
 
@@ -177,12 +177,12 @@ public class EntryMovementService {
         }
     }
 
-    public String previewInvoice(Long id) {
+    public String previewDocument(Long id) {
         try {
             MovementEntity movement = movementRepository.findById(id)
                     .orElseThrow(() -> new MovementDoesNotExistException());
 
-            return fileStorage.generateTemporaryUrl(movement.getInvoiceUrl());
+            return fileStorage.generateTemporaryUrl(movement.getDocumentUrl());
         } catch(DomainError e) {
             LOG.info(e.getMessage(), e);
             throw e;
