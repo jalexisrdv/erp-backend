@@ -10,6 +10,7 @@ INSERT INTO app_modules (code, name, parent_id) VALUES ('INVENTORY_MOVEMENTS', '
 INSERT INTO app_modules (code, name, parent_id) VALUES ('CHECKLISTS', 'Listas de Verificación', NULL);
 INSERT INTO app_modules (code, name, parent_id) VALUES ('CHECKLIST_TEMPLATES', 'Plantillas', (SELECT id FROM app_modules WHERE code = 'CHECKLISTS'));
 INSERT INTO app_modules (code, name, parent_id) VALUES ('CHECKLIST_ASSIGNMENTS', 'Asignaciones', (SELECT id FROM app_modules WHERE code = 'CHECKLISTS'));
+INSERT INTO app_modules (code, name, parent_id) VALUES ('CHECKLIST_CHATBOT', 'ChatBot', (SELECT id FROM app_modules WHERE code = 'CHECKLISTS'));
 
 INSERT INTO permissions (module_id, code, name, description) VALUES ((SELECT id FROM app_modules WHERE code = 'USERS'), 'USERS_VIEW', 'Ver Usuarios', 'Permite visualizar la lista de usuarios');
 INSERT INTO permissions (module_id, code, name, description) VALUES ((SELECT id FROM app_modules WHERE code = 'USERS'), 'USERS_CREATE', 'Crear Usuarios', 'Permite registrar nuevos usuarios');
@@ -53,6 +54,8 @@ INSERT INTO permissions (module_id, code, name, description) VALUES ((SELECT id 
 INSERT INTO permissions (module_id, code, name, description) VALUES ((SELECT id FROM app_modules WHERE code = 'CHECKLIST_ASSIGNMENTS'), 'CHECKLIST_ASSIGNMENTS_DELETE', 'Eliminar Asignación', 'Permite borrar asignaciones');
 INSERT INTO permissions (module_id, code, name, description) VALUES ((SELECT id FROM app_modules WHERE code = 'CHECKLIST_ASSIGNMENTS'), 'CHECKLIST_ASSIGNMENTS_FILL_REPORT', 'Responder Reporte Asignado', 'Permite completar y enviar la información del reporte asignado');
 INSERT INTO permissions (module_id, code, name, description) VALUES ((SELECT id FROM app_modules WHERE code = 'CHECKLIST_ASSIGNMENTS'), 'CHECKLIST_ASSIGNMENTS_PREVIEW', 'Previsualizar Reporte Asignado', 'Permite visualizar el reporte finalizado antes o después de ser enviado');
+
+INSERT INTO permissions (module_id, code, name, description) VALUES ((SELECT id FROM app_modules WHERE code = 'CHECKLIST_CHATBOT'), 'CHECKLIST_CHATBOT_USE', 'Usar chatbot de checklists', 'Permite visualizar y consultar las asignaciones de reportes dentro del chatbot');
 
 INSERT INTO roles (id, name) VALUES(1, 'ADMIN');
 

@@ -15,6 +15,8 @@ DROP TABLE IF EXISTS checklist_assignments CASCADE;
 DROP TABLE IF EXISTS checklist_items CASCADE;
 DROP TABLE IF EXISTS checklist_sections CASCADE;
 DROP TABLE IF EXISTS checklist_templates CASCADE;
+DROP TABLE IF EXISTS bot_session_data CASCADE;
+DROP TABLE IF EXISTS bot_users CASCADE;
 
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
@@ -22,11 +24,14 @@ CREATE TABLE users (
     middle_name VARCHAR(200) NOT NULL,
     last_name VARCHAR(200) NOT NULL,
     second_last_name VARCHAR(200) NOT NULL,
-    phone_number VARCHAR(20) NOT NULL,
+    phone_number VARCHAR(13) NOT NULL,
     username VARCHAR(50) NOT NULL,
     password VARCHAR(500) NULL,
     enabled BOOLEAN NOT NULL DEFAULT TRUE,
     credentials_expired BOOLEAN NOT NULL DEFAULT FALSE,
+
+    CONSTRAINT uq_users_phone_number
+        UNIQUE (phone_number),
 
     CONSTRAINT uq_users_username
         UNIQUE (username)
@@ -311,4 +316,40 @@ CREATE TABLE assignment_responses (
         FOREIGN KEY (item_id)
         REFERENCES assignment_items (id)
         ON DELETE CASCADE
+);
+
+CREATE TABLE bot_users (
+    id SERIAL PRIMARY KEY,
+    user_id INT NULL,
+    platform VARCHAR(250),
+    provider_user_id VARCHAR(500),
+    current_state VARCHAR(1000),
+    previous_state VARCHAR(1000),
+
+    CONSTRAINT fk_bot_users_users
+                FOREIGN KEY (user_id)
+                REFERENCES users(id)
+                ON DELETE CASCADE,
+
+    CONSTRAINT uq_bot_users_user_id_platform
+            UNIQUE (user_id, platform),
+
+    CONSTRAINT uq_bot_users_platform_provider_user_id
+            UNIQUE (platform, provider_user_id)
+);
+
+CREATE TABLE bot_session_data (
+    id SERIAL PRIMARY KEY,
+    bot_user_id INT NOT NULL,
+    state VARCHAR(100) NOT NULL,
+    key VARCHAR(100) NOT NULL,
+    value JSONB NOT NULL,
+
+    CONSTRAINT fk_bot_session_data_bot_users
+                FOREIGN KEY (bot_user_id)
+                REFERENCES bot_users(id)
+                ON DELETE CASCADE,
+
+    CONSTRAINT uq_bot_session_data_bot_user_id_key
+        UNIQUE (bot_user_id, key)
 );
