@@ -147,21 +147,31 @@ INSERT INTO checklist_assignments (
 );
 
 INSERT INTO assignment_sections (section_id, assignment_id, name, position, status)
-SELECT id, 1, name, position, 'PENDING'
-FROM checklist_sections
-WHERE template_id = 1
-ORDER BY position;
+SELECT
+    id, 1, name, position, 'PENDING'
+FROM
+    checklist_sections
+WHERE
+    template_id = 1
+ORDER BY
+    position
+;
 
 INSERT INTO assignment_items (item_id, section_id, label, position)
-SELECT items.id, sections.id, items.label, items.position
-FROM checklist_items items
-JOIN assignment_sections sections ON sections.id = items.section_id
-WHERE sections.assignment_id = 1
-ORDER BY sections.position, items.position;
+SELECT
+    items.id, sections.id, items.label, items.position
+FROM
+    checklist_items items
+    JOIN assignment_sections sections ON sections.id = items.section_id
+WHERE
+    sections.assignment_id = 1
+ORDER BY
+    sections.position, items.position
+;
 
 INSERT INTO assignment_responses (item_id, status, comment)
 SELECT
-    items.id,
-    NULL,
-    NULL
-FROM assignment_items items;
+    items.id, NULL, NULL
+FROM
+    assignment_items items
+;
