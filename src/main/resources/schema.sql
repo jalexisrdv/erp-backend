@@ -293,7 +293,6 @@ CREATE TABLE assignment_items (
 
 CREATE TABLE assignment_responses (
     id SERIAL PRIMARY KEY,
-    assignment_id INT NOT NULL,
     item_id INT NOT NULL,
     status VARCHAR(3) NULL CHECK (status IN ('F', 'OK', 'R')),
     comment TEXT NULL,
@@ -306,11 +305,6 @@ CREATE TABLE assignment_responses (
             OR
             (status IN ('F', 'R') AND comment IS NOT NULL)
         ),
-
-    CONSTRAINT fk_assignment_responses_checklist_assignments
-        FOREIGN KEY (assignment_id)
-        REFERENCES checklist_assignments (id)
-        ON DELETE CASCADE,
 
     CONSTRAINT fk_assignment_responses_assignment_items
         FOREIGN KEY (item_id)

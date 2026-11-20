@@ -13,10 +13,6 @@ public final class AssignmentResponseEntity {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "assignment_id")
-    private AssignmentEntity assignment;
-
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "item_id")
     private AssignmentItemEntity item;
 
@@ -54,28 +50,12 @@ public final class AssignmentResponseEntity {
         return status != null && !status.equals(ResponseStatusEnum.OK) && (comment == null || comment.isBlank());
     }
 
-    public AssignmentEntity assignment() {
-        return assignment;
-    }
-
-    public AssignmentSectionEntity section() {
-        return item.getSection();
-    }
-
     public Long getId() {
         return id;
     }
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public AssignmentEntity getAssignment() {
-        return assignment;
-    }
-
-    public void setAssignment(AssignmentEntity assignment) {
-        this.assignment = assignment;
     }
 
     public AssignmentItemEntity getItem() {

@@ -9,7 +9,7 @@ import java.util.Optional;
 
 public interface AssigmentRepository extends JpaRepository<AssignmentEntity, Long>, JpaSpecificationExecutor {
 
-    @EntityGraph(attributePaths = {"responses"})
-    Optional<AssignmentEntity> findWithResponsesById(Long id);
+    @EntityGraph(attributePaths = {"sections", "sections.items", "sections.items.response"})
+    Optional<AssignmentEntity> findDetailedById(Long id);
 
 }

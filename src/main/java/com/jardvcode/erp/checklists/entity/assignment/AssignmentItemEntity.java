@@ -15,9 +15,15 @@ public final class AssignmentItemEntity {
     @Column(name = "uuid")
     private UUID uuid;
 
+    @Column(name = "item_id")
+    private Long itemId;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "section_id")
     private AssignmentSectionEntity section;
+
+    @OneToOne(mappedBy = "item", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private AssignmentResponseEntity response;
 
     @Column(name = "label")
     private String label;
@@ -41,12 +47,28 @@ public final class AssignmentItemEntity {
         this.uuid = uuid;
     }
 
+    public Long getItemId() {
+        return itemId;
+    }
+
+    public void setItemId(Long itemId) {
+        this.itemId = itemId;
+    }
+
     public AssignmentSectionEntity getSection() {
         return section;
     }
 
     public void setSection(AssignmentSectionEntity section) {
         this.section = section;
+    }
+
+    public AssignmentResponseEntity getResponse() {
+        return response;
+    }
+
+    public void setResponse(AssignmentResponseEntity response) {
+        this.response = response;
     }
 
     public String getLabel() {

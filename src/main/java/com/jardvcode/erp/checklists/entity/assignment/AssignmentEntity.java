@@ -61,8 +61,9 @@ public final class AssignmentEntity {
     @Column(name = "status")
     private AssignmentStatusEnum status = AssignmentStatusEnum.PENDING;
 
-    @OneToMany(mappedBy = "assignment", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private Set<AssignmentResponseEntity> responses = new HashSet<>();
+    @OneToMany(mappedBy = "assignment", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("position ASC")
+    private Set<AssignmentSectionEntity> sections = new HashSet<>();
 
     public static AssignmentEntity create(Long id, Long templateId, String templateName, Integer unitNumber, Long operatorUserId, String operatorFullName, Long mechanicUserId, String mechanicFullName, String mileage, String nextService, String timeIn, String timeOut) {
         LocalTime localTimeIn = null;
@@ -126,7 +127,9 @@ public final class AssignmentEntity {
     }
 
     public void updateResponses(List<AssignmentResponseEntity> incomingResponses) {
-        Map<Long, AssignmentResponseEntity> responsesById = responses.stream()
+        Map<Long, AssignmentResponseEntity> responsesById = sections.stream()
+                .flatMap(section -> section.getItems().stream())
+                .map(AssignmentItemEntity::getResponse)
                 .collect(Collectors.toMap(AssignmentResponseEntity::getId, response -> response));
 
         incomingResponses.forEach(response -> {
@@ -143,7 +146,11 @@ public final class AssignmentEntity {
     }
 
     public AssignmentStatusEnum determineStatus() {
-        boolean allResponsesAnswered = responses.stream().allMatch(AssignmentResponseEntity::isAnswered);
+        boolean allResponsesAnswered = sections.stream()
+                .flatMap(section -> section.getItems().stream())
+                .map(AssignmentItemEntity::getResponse)
+                .allMatch(AssignmentResponseEntity::isAnswered);
+
         return allResponsesAnswered ? AssignmentStatusEnum.COMPLETED : AssignmentStatusEnum.PENDING;
     }
 
@@ -259,12 +266,12 @@ public final class AssignmentEntity {
         this.status = status;
     }
 
-    public Set<AssignmentResponseEntity> getResponses() {
-        return responses;
+    public Set<AssignmentSectionEntity> getSections() {
+        return sections;
     }
 
-    public void setResponses(Set<AssignmentResponseEntity> responses) {
-        this.responses = responses;
+    public void setSections(Set<AssignmentSectionEntity> sections) {
+        this.sections = sections;
     }
 
 }

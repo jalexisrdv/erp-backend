@@ -18,6 +18,9 @@ public final class AssignmentSectionEntity {
     @Column(name = "uuid")
     private UUID uuid;
 
+    @Column(name = "section_id")
+    private Long sectionId;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "assignment_id")
     private AssignmentEntity assignment;
@@ -50,6 +53,14 @@ public final class AssignmentSectionEntity {
 
     public void setUuid(UUID uuid) {
         this.uuid = uuid;
+    }
+
+    public Long getSectionId() {
+        return sectionId;
+    }
+
+    public void setSectionId(Long sectionId) {
+        this.sectionId = sectionId;
     }
 
     public AssignmentEntity getAssignment() {

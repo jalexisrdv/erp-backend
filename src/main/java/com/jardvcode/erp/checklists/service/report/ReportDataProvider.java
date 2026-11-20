@@ -25,19 +25,15 @@ public final class ReportDataProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(ReportDataProvider.class);
 
     private final AssigmentRepository assigmentRepository;
-    private final AssignmentResponseRepository responseRepository;
 
-    public ReportDataProvider(AssigmentRepository assigmentRepository, AssignmentResponseRepository responseRepository) {
+    public ReportDataProvider(AssigmentRepository assigmentRepository) {
         this.assigmentRepository = assigmentRepository;
-        this.responseRepository = responseRepository;
     }
 
     public ReportDTO findByAssignmentId(Long assignmentId) {
         try {
-            AssignmentEntity assignment = assigmentRepository.findById(assignmentId)
+            AssignmentEntity assignment = assigmentRepository.findDetailedById(assignmentId)
                     .orElseThrow(() -> new AssigmentDoesNotExistException(DomainErrorType.CONFLICT));
-
-            List<AssignmentResponseEntity> responses = responseRepository.findWithSectionAndItemByAssignmentIdOrderByItemPosition(assignmentId);
 
             HeaderDTO header = new HeaderDTO(
                     assignment.getUnitNumber().toString(),
@@ -51,14 +47,19 @@ public final class ReportDataProvider {
                     assignment.getDate().toString()
             );
 
-            List<ResponseDTO> responseDtos = responses.stream().map((response) -> {
-                return new ResponseDTO(
-                        response.getItem().getSection().getName(),
-                        response.getItem().getLabel(),
-                        response.getStatus() == null ? "" : response.getStatus().toString(),
-                        Optional.ofNullable(response.getComment()).orElse("")
-                );
-            }).collect(Collectors.toList());
+            List<ResponseDTO> responseDtos = assignment.getSections().stream()
+                    .flatMap(section -> section.getItems().stream()
+                            .map(item -> {
+                                var response = item.getResponse();
+
+                                return new ResponseDTO(
+                                        section.getName(),
+                                        item.getLabel(),
+                                        response.getStatus() == null ? "" : response.getStatus().toString(),
+                                        Optional.ofNullable(response.getComment()).orElse("")
+                                );
+                            })
+                    ).toList();
 
             return new ReportDTO(assignmentId, header, responseDtos);
         } catch(DomainError e) {

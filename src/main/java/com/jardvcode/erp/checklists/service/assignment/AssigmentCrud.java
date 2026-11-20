@@ -90,9 +90,9 @@ public class AssigmentCrud {
         }
     }
 
-    public AssignmentEntity findWithResponsesById(Long id) {
+    public AssignmentEntity findDetailedById(Long id) {
         try {
-            return assignmentRepository.findWithResponsesById(id)
+            return assignmentRepository.findDetailedById(id)
                     .orElseThrow(() -> new AssigmentDoesNotExistException(DomainErrorType.CONFLICT));
         } catch (DomainError e) {
             LOG.info(e.getMessage(), e);
@@ -166,7 +166,7 @@ public class AssigmentCrud {
 
     public void updateResponses(Long assignmentId, List<ResponseRequestDTO> responseDtos) {
         try {
-            AssignmentEntity foundAssignment = assignmentRepository.findWithResponsesById(assignmentId)
+            AssignmentEntity foundAssignment = assignmentRepository.findDetailedById(assignmentId)
                     .orElseThrow(() -> new AssigmentDoesNotExistException(DomainErrorType.CONFLICT));
 
             List<AssignmentResponseEntity> incomingResponses = responseDtos.stream()

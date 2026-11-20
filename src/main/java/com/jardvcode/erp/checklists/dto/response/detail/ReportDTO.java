@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public record ReportDTO(
         HeaderDTO header,
@@ -14,32 +15,6 @@ public record ReportDTO(
 ) {
 
     public static ReportDTO fromEntity(AssignmentEntity assignment) {
-        HashMap<String, SectionDTO> sections = new HashMap<>();
-
-        assignment.getResponses().forEach(responseEntity -> {
-            AssignmentSectionEntity sectionEntity = responseEntity.section();
-
-            SectionDTO section = sections.computeIfAbsent(
-                    sectionEntity.getName(),
-                    key -> new SectionDTO(
-                            sectionEntity.getId(),
-                            sectionEntity.getName(),
-                            new ArrayList<>(),
-                            sectionEntity.getPosition()
-                    )
-            );
-
-            ResponseDTO response = new ResponseDTO(
-                    responseEntity.getId(),
-                    responseEntity.getItem().getLabel(),
-                    responseEntity.getStatus(),
-                    responseEntity.getComment(),
-                    responseEntity.getItem().getPosition()
-            );
-
-            section.responses().add(response);
-        });
-
         HeaderDTO header = new HeaderDTO(
                 assignment.getUnitNumber().toString(),
                 assignment.getTemplateName(),
@@ -52,21 +27,13 @@ public record ReportDTO(
                 assignment.getDate().toString()
         );
 
-        List<SectionDTO> sortedSections = sections.values().stream()
-                .sorted(Comparator.comparingInt(SectionDTO::position))
-                .map(section -> new SectionDTO(
-                        section.id(),
-                        section.name(),
-                        section.responses().stream()
-                                .sorted(Comparator.comparingInt(ResponseDTO::position))
-                                .toList(),
-                        section.position()
-                ))
-                .toList();
+        List<SectionDTO> sections = assignment.getSections().stream()
+                .map(SectionDTO::fromEntity)
+                .collect(Collectors.toList());
 
         return new ReportDTO(
                 header,
-                new ArrayList<>(sortedSections)
+                new ArrayList<>(sections)
         );
     }
 
